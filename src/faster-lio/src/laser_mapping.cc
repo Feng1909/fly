@@ -262,6 +262,7 @@ void LaserMapping::SubAndPubToROS(ros::NodeHandle &nh) {
     pub_laser_cloud_body_ = nh.advertise<sensor_msgs::PointCloud2>("/cloud_registered_body", 100000);
     pub_laser_cloud_effect_world_ = nh.advertise<sensor_msgs::PointCloud2>("/cloud_registered_effect_world", 100000);
     pub_odom_aft_mapped_ = nh.advertise<nav_msgs::Odometry>("/Odometry", 100000);
+    pub_mavros_odom_ = nh.advertise<geometry_msgs::PoseStamped>("/mavros/vision_pose/pose", 10000);
     pub_path_ = nh.advertise<nav_msgs::Path>("/path", 100000);
 }
 
@@ -691,7 +692,22 @@ void LaserMapping::PublishOdometry(const ros::Publisher &pub_odom_aft_mapped) {
     odom_aft_mapped_.twist.twist.linear.x = kf_.get_x().vel(0);
     odom_aft_mapped_.twist.twist.linear.y = kf_.get_x().vel(1);
     odom_aft_mapped_.twist.twist.linear.z = kf_.get_x().vel(2);
+    odom_aft_mapped_.twist.twist.angular.x = imu_buffer_.front()->angular_velocity.x;
+    odom_aft_mapped_.twist.twist.angular.y = imu_buffer_.front()->angular_velocity.y;
+    odom_aft_mapped_.twist.twist.angular.z = imu_buffer_.front()->angular_velocity.z;
+    
+    geometry_msgs::PoseStamped mavros_odom;
+    mavros_odom.header = odom_aft_mapped_.header;
+    mavros_odom.pose.position.x = odom_aft_mapped_.pose.pose.position.x;
+    mavros_odom.pose.position.y = odom_aft_mapped_.pose.pose.position.y;
+    mavros_odom.pose.position.z = odom_aft_mapped_.pose.pose.position.z;
+    mavros_odom.pose.orientation.x = odom_aft_mapped_.pose.pose.orientation.x;
+    mavros_odom.pose.orientation.y = odom_aft_mapped_.pose.pose.orientation.y;
+    mavros_odom.pose.orientation.z = odom_aft_mapped_.pose.pose.orientation.z;
+    mavros_odom.pose.orientation.w = odom_aft_mapped_.pose.pose.orientation.w;
+
     pub_odom_aft_mapped.publish(odom_aft_mapped_);
+    pub_mavros_odom_.publish(mavros_odom);
     auto P = kf_.get_P();
     for (int i = 0; i < 6; i++) {
         int k = i < 3 ? i + 3 : i - 3;
