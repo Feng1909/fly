@@ -1,0 +1,30 @@
+
+mission_pillar_x_down: 4.0
+mission_pillar_x_up: 13.0
+mission_pillar_y_left: 5.0
+mission_pillar_y_right: 0.0
+
+mission_tunnel_x_down: 14
+mission_tunnel_x_up: 20
+mission_tunnel_y_left: 5.0
+mission_tunnel_y_right: -1.0
+
+mission_maze_x_down: 20.0
+mission_maze_x_up: 25.0
+mission_maze_y_left: -4.0
+mission_maze_y_right: -15.0
+
+mission_loop_x_down: 15.0
+mission_loop_x_up: 20.0
+mission_loop_y_left: -15.0
+mission_loop_y_right: -23.0
+
+mission_m_loop_x_down: 7.0
+mission_m_loop_x_up: 15.0
+mission_m_loop_y_left: -15.0
+mission_m_loop_y_right: -23.0
+
+mission_land_x_down: 0.0
+mission_land_x_up: 10.0
+mission_land_y_left: -10.0
+mission_land_y_right: -14.0

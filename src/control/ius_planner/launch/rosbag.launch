@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="map_size_x_" value="30.0"/>
+  <arg name="map_size_y_" value="30.0"/>
+  <arg name="map_size_z_" value="3.0"/>
+
+
+    <!-- <include file="$(find faster_lio)/launch/mapping_avia.launch">
+    </include>
+    <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch">
+    </include> -->
+
+    <!-- MAVROS -->
+    <!-- <include file="$(find mavros)/launch/px4.launch">
+        <arg name="gcs_url" value="udp://:14540@localhost:14550"/>
+        <arg name="fcu_url" value="/dev/ttyACM0:57600"/>
+    </include> -->
+  <include file="$(find ius_perception)/launch/test.launch">
+  </include>
+  <node name="ius_planner" pkg="ius_planner" type="ius_planner_exp_node" output="screen">
+    <rosparam file="$(find ius_planner)/config/map_fence.yaml" command="load" />
+    <rosparam file="$(find ius_planner)/config/pos_point.yaml" command="load" />
+    <remap from="~trajectory" to="/ius_uav/trajectory"/>
+    <remap from="/grid_map/odom" to="/mavros/local_position/odom"/>
+    <remap from="/grid_map/lidar_cloud" to="/cloud_registered_body"/>
+  </node>
+
+  <!-- <include file="$(find uav_control)/launch/control.launch">
+    <arg name="auto_offboard" value="false"/>
+  </include> -->
+
+  <!-- <include file="$(find ius_visualization)/launch/test.launch">
+  </include> -->
+</launch>

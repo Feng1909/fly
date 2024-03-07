@@ -1,0 +1,15 @@
+<launch>
+    <arg name="traj_id" default="0"/>
+    <arg name="auto_offboard" default="true" />
+    
+    <!-- <include file="$(find px4_sim)/launch/sim.launch" /> -->
+
+    <node pkg="uav_control" name="track_mpc" type="tracking.py" output="screen">
+        <!-- <param name="auto_offboard" value="$(arg auto_offboard)"/> -->
+        <remap from="~odom" to="/Odometry" />
+        <remap from="~track_traj" to="/ius_uav/trajectory" />
+    </node>
+    
+    <!-- <node pkg="uav_control" name="test_traj_pub" type="test_traj_pub.py" output="screen" /> -->
+    <!-- <include file="$(find ius_visualization)/launch/test.launch" /> -->
+</launch>
