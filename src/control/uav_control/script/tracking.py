@@ -180,7 +180,7 @@ def odom_cb(msg: Odometry):
     #     return
 
     if trajectory != None:
-        q = np.array([msg.pose.pose.orientation.w, msg.pose.pose.orientation.x,
+        q = -np.array([msg.pose.pose.orientation.w, msg.pose.pose.orientation.x,
                       msg.pose.pose.orientation.y, msg.pose.pose.orientation.z])
         # q = np.array([1,0,0,0])
         v_b = np.array([msg.twist.twist.linear.x,

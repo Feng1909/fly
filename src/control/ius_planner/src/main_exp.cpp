@@ -152,8 +152,8 @@ void local_pos_cb(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   {
        trajA_1 = PolynomialTraj::one_segment_traj_gen(start_pos_A, start_vel_A, start_acc_A,
                                                   mid_pos1_A, mid_vel1_A, mid_acc1_A, 3.0);
-      //  trajA_2 = PolynomialTraj::one_segment_traj_gen(mid_pos1_A, mid_vel1_A, mid_acc1_A,
-      //                                                   mid_pos2_A, mid_vel2_A, mid_acc2_A, 3.0);
+       trajA_2 = PolynomialTraj::one_segment_traj_gen(mid_pos1_A, mid_vel1_A, mid_acc1_A,
+                                                        mid_pos2_A, mid_vel2_A, mid_acc2_A, 3.0);
       //  trajA_3 = PolynomialTraj::one_segment_traj_gen(mid_pos2_A, mid_vel2_A, mid_acc2_A,
       //                                                   mid_pos3_A, mid_vel3_A, mid_acc3_A, 3.0); 
       //  trajA_4 = PolynomialTraj::one_segment_traj_gen(mid_pos3_A, mid_vel3_A, mid_acc3_A,
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
     /*  Task A traj init */                                      
     traj_.addSegment(trajA_1.getCoef(0)[0], trajA_1.getCoef(1)[0], trajA_1.getCoef(2)[0], trajA_1.getTimes()[0]);
-    // traj_.addSegment(trajA_2.getCoef(0)[0], trajA_2.getCoef(1)[0], trajA_2.getCoef(2)[0], trajA_2.getTimes()[0]);
+    traj_.addSegment(trajA_2.getCoef(0)[0], trajA_2.getCoef(1)[0], trajA_2.getCoef(2)[0], trajA_2.getTimes()[0]);
     // traj_.addSegment(trajA_3.getCoef(0)[0], trajA_3.getCoef(1)[0], trajA_3.getCoef(2)[0], trajA_3.getTimes()[0]);
     // traj_.addSegment(trajA_4.getCoef(0)[0], trajA_4.getCoef(1)[0], trajA_4.getCoef(2)[0], trajA_4.getTimes()[0]);
     // traj_.addSegment(trajA_5.getCoef(0)[0], trajA_5.getCoef(1)[0], trajA_5.getCoef(2)[0], trajA_5.getTimes()[0]);
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
     // traj_.addSegment(trajE_1.getCoef(0)[0], trajE_1.getCoef(1)[0], trajE_1.getCoef(2)[0], trajE_1.getTimes()[0]);                                 
     // traj_.addSegment(trajE_2.getCoef(0)[0], trajE_2.getCoef(1)[0], trajE_2.getCoef(2)[0], trajE_2.getTimes()[0]);
 
-    for (double t = 0.0; t < 2.6; t += 0.1)
+    for (double t = 0.0; t < 4.6; t += 0.1)
     {
       const auto& pt = traj_.evaluate(t);
       pos_sampled.push_back(pt);
