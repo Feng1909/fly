@@ -383,6 +383,7 @@ void LaserMapping::StandardPCLCallBack(const sensor_msgs::PointCloud2::ConstPtr 
 }
 
 void LaserMapping::LivoxPCLCallBack(const livox_ros_driver::CustomMsg::ConstPtr &msg) {
+    std::cout<<"get"<<std::endl;
     mtx_buffer_.lock();
     Timer::Evaluate(
         [&, this]() {

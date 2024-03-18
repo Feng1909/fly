@@ -5,8 +5,11 @@
 #include "std_msgs/Empty.h"
 #include "visualization_msgs/Marker.h"
 #include <ros/ros.h>
+#include <ius_msgs/Trajectory.h>
 
 ros::Publisher pos_cmd_pub;
+ros::Publisher traj_pub;
+ius_msgs::Trajectory traj_msg_;
 
 quadrotor_msgs::PositionCommand cmd;
 double pos_gain[3] = {0, 0, 0};
@@ -41,6 +44,17 @@ void bsplineCallback(ego_planner::BsplineConstPtr msg)
     pos_pts(0, i) = msg->pos_pts[i].x;
     pos_pts(1, i) = msg->pos_pts[i].y;
     pos_pts(2, i) = msg->pos_pts[i].z;
+  }
+
+  traj_msg_.pos.clear();
+  traj_msg_.yaw.clear();
+  traj_msg_.time.clear();
+  traj_msg_.header.stamp = ros::Time::now();
+  traj_msg_.header.frame_id = "world";
+  for (size_t i = 0; i< msg->pos_pts.size(); ++i) {
+    traj_msg_.pos.push_back(msg->pos_pts[i]);
+    traj_msg_.yaw.push_back(0.0);
+    traj_msg_.time.push_back(msg->knots[i]);
   }
 
   UniformBspline pos_traj(pos_pts, msg->order, 0.1);
@@ -165,6 +179,8 @@ void cmdCallback(const ros::TimerEvent &e)
   /* no publishing before receive traj_ */
   if (!receive_traj_)
     return;
+  traj_msg_.header.stamp = ros::Time::now();
+  traj_pub.publish(traj_msg_);
 
   ros::Time time_now = ros::Time::now();
   double t_cur = (time_now - start_time_).toSec();
@@ -238,6 +254,7 @@ int main(int argc, char **argv)
   ros::Subscriber bspline_sub = node.subscribe("planning/bspline", 10, bsplineCallback);
 
   pos_cmd_pub = node.advertise<quadrotor_msgs::PositionCommand>("/position_cmd", 50);
+  traj_pub = node.advertise<ius_msgs::Trajectory>("trajectory", 1);
 
   ros::Timer cmd_timer = node.createTimer(ros::Duration(0.01), cmdCallback);
 

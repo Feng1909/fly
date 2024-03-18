@@ -7,7 +7,7 @@
     <node pkg="uav_control" name="track_mpc" type="tracking.py" output="screen">
         <!-- <param name="auto_offboard" value="$(arg auto_offboard)"/> -->
         <remap from="~odom" to="/mavros/local_position/odom" />
-        <remap from="~track_traj" to="/ius_uav/trajectory" />
+        <remap from="~track_traj" to="/trajectory" />
     </node>
     
     <!-- <node pkg="uav_control" name="test_traj_pub" type="test_traj_pub.py" output="screen" /> -->
