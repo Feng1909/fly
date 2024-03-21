@@ -8,10 +8,11 @@
       <!-- limitation -->
       <param name="planning/limit_vel" value="1.0" type="double"/>
       <param name="planning/limit_acc" value="1.0" type="double"/>
-      <param name="planning/limit_d" value="1.0" type="double"/>
+      <param name="planning/limit_d" value="0.1" type="double"/>
       <param name="planning/limit_jerk" value="1.0" type="double"/>
 
-      <param name="vis/vis_traj_width" value="0.15" />
+      <param name="vis/vis_traj_width" value="0.1" />
+      <param name="dist_thresh" value="0.1" type="double"/>
 
   </node>
 

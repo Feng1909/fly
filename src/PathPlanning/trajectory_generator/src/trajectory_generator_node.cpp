@@ -28,11 +28,14 @@ using namespace Eigen;
     double _limit_vel, _limit_acc;
     double _limit_d;  // allowable width of the trajectory
     double _limit_jerk;
+    double _dist_thresh;
 
 // ros related
-    ros::Subscriber _way_pts_sub, _traj_msg_sub;
+    ros::Subscriber _way_pts_sub, _traj_msg_sub, _detect_pose_sub;
     ros::Publisher _wp_path_vis_pub, _wp_traj_vis_pub;
     ros::Publisher _traj_pub;
+
+    bool _reach_point = false;
 
     // Ros msg
     trajectory_generator::Trajectory _traj_msg;
@@ -48,9 +51,18 @@ using namespace Eigen;
     void trajGeneration(Eigen::MatrixXd path);
     void rcvWaypointsCallBack(const nav_msgs::Path & wp);
     void send_traj_msg(Eigen::MatrixXd path, Eigen::VectorXd time);
+    void rcv_point(const nav_msgs::Odometry &msg);
 
     // test msg
     void listen_traj_msg(const trajectory_generator::Trajectory &msg);
+
+void rcv_point(const nav_msgs::Odometry &msg) {
+    double px, py, pz;
+    px = msg.pose.pose.position.x;
+    py = msg.pose.pose.position.y;
+    pz = msg.pose.pose.position.z;
+    if (px*px + py*py + (pz-1.0)*(pz-1.0) < _dist_thresh && !_reach_point) _reach_point = true;
+}
 
 void listen_traj_msg(const trajectory_generator::Trajectory &msg) {
     geometry_msgs::Point p;
@@ -80,9 +92,19 @@ void rcvWaypointsCallBack(const nav_msgs::Path & wp)
     // for (int k = 0; k < (int)wp_list.size(); k++) {
     //     waypoints.row(k) = wp_list[k].transpose();
     // }
-    Eigen::MatrixXd waypoints(2, 3);
-    waypoints <<0, 0, 0,
-                0, 0, 1;
+    // Eigen::MatrixXd waypoints(2, 3);
+    // if (!_reach_point) {
+    //     waypoints << 0, 0, 0,
+    //                  0, 0, 1;
+    // }
+    // else {
+    //     waypoints << 0, 0, 1,
+    //                  1, 0, 1;
+    // }
+    Eigen::MatrixXd waypoints(3, 3);
+    waypoints << 0.0, 0.0, 0.0,
+                 0.0, 0.0, 1.0,
+                 1.0, 0.0, 1.0;
 
     // generate trajectory based on the waypoints
     trajGeneration(waypoints);
@@ -103,6 +125,7 @@ void trajGeneration(Eigen::MatrixXd path)
 
     // show the optimized trajectory
     vis_traj_point_path(_coord);
+    // std::cout << std::endl << _coord << std::endl;
 
     // send the trajectory to the controller
     send_traj_msg(_coord, _polyTime);
@@ -142,8 +165,11 @@ int main(int argc, char** argv)
     nh.param("planning/limit_d", _limit_d, 1.0);
     nh.param("planning/limit_jerk", _limit_jerk, 1.0);
     nh.param("vis/vis_traj_width", _vis_traj_width, 0.15);
+    nh.param("dist_thresh", _dist_thresh, 0.1);
     
     _way_pts_sub     = nh.subscribe( "waypoints", 1, rcvWaypointsCallBack);
+    _detect_pose_sub = nh.subscribe("/mavros/local_position/odom", 1, rcv_point);
+    
 
     _wp_traj_vis_pub = nh.advertise<visualization_msgs::Marker>("vis_trajectory", 1);
     _wp_path_vis_pub = nh.advertise<visualization_msgs::Marker>("vis_waypoint_path", 1);
@@ -296,16 +322,16 @@ VectorXd timeAllocation( MatrixXd Path)
     tmp_x = abs(Path(0, 0) - Path(1, 0));
     tmp_y = abs(Path(0, 1) - Path(1, 1));
     tmp_z = abs(Path(0, 2) - Path(1, 2));
-    time(0) = 2.0 * max(tmp_x, max(tmp_y, tmp_z));
+    time(0) = 5.0 * max(tmp_x, max(tmp_y, tmp_z));
     for (int i=1; i<idx-1; ++i) {
         tmp_x = abs(Path(i, 0) - Path(i+1, 0));
         tmp_y = abs(Path(i, 1) - Path(i+1, 1));
         tmp_z = abs(Path(i, 2) - Path(i+1, 2));
-        time(i) = max(tmp_x, max(tmp_y, tmp_z));
+        time(i) = 2.5 * max(tmp_x, max(tmp_y, tmp_z));
     }
     tmp_x = abs(Path(idx, 0) - Path(idx-1, 0));
     tmp_y = abs(Path(idx, 1) - Path(idx-1, 1));
     tmp_z = abs(Path(idx, 2) - Path(idx-1, 2));
-    time(idx-1) = 2.0 * max(tmp_x, max(tmp_y, tmp_z));    
+    time(idx-1) = 5.0 * max(tmp_x, max(tmp_y, tmp_z));    
     return time;
 }

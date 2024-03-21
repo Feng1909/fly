@@ -33,7 +33,7 @@ class Traj():
         for i, pos in enumerate(traj.pos):
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
-            ts.append(traj.time[i]*3)
+            ts.append(traj.time[i])
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)

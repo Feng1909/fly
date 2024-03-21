@@ -97,13 +97,15 @@ Eigen::VectorXd TrajectoryGeneratorWaypoint::OsqpEigenSolve(const Eigen::MatrixX
         // every step
         int idx = 3 * i * (steps+1);
         ldx_state(idx) = Path(i, 0);
-        ldx_state[idx+1] = -limit_vel;
+        ldx_state(idx+1) = -0.0;
+        ldx_state(idx+2) = -0.0;
         for (int j=1; j<steps; ++j) {
             ldx_state(idx+3*j) = Path(i, 0) + double(j)/double(steps)*(Path(i+1, 0)-Path(i, 0)) - limit_d;
-            ldx_state[idx+3*j+1] = -limit_vel;
+            ldx_state(idx+3*j+1) = -limit_vel;
         }
         ldx_state(idx+3*steps) = Path(i+1, 0);
-        ldx_state(idx+3*steps+1) = -limit_vel;
+        ldx_state(idx+3*steps+1) = -0.0;
+        ldx_state(idx+3*steps+2) = -0.0;
     }
     Eigen::VectorXd ldx_control = Eigen::VectorXd::Ones(m*steps) * -limit_jerk;
     Eigen::VectorXd lux_state = Eigen::VectorXd::Ones(3*m*(steps+1)) * limit_acc;
@@ -112,13 +114,15 @@ Eigen::VectorXd TrajectoryGeneratorWaypoint::OsqpEigenSolve(const Eigen::MatrixX
         // every step
         int idx = 3 * i * (steps+1);
         lux_state(idx) = Path(i, 0);
-        lux_state[idx+1] = limit_vel;
+        lux_state(idx+1) = 0.0;
+        lux_state(idx+2) = 0.0;
         for (int j=1; j<steps; ++j) {
             lux_state(idx+3*j) = Path(i, 0) + double(j)/double(steps)*(Path(i+1, 0)-Path(i, 0)) + limit_d;
             lux_state(idx+3*j+1) = limit_vel;
         }
         lux_state(idx+3*steps) = Path(i+1, 0);
-        lux_state(idx+3*steps+1) = limit_vel;
+        lux_state(idx+3*steps+1) = 0.0;
+        lux_state(idx+3*steps+2) = 0.0;
     }
     Eigen::VectorXd lux_control = Eigen::VectorXd::Ones(m*steps) * limit_jerk;
     len = lu0.rows()+ldx_state.rows()+ldx_control.rows();
