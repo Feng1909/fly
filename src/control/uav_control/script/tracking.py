@@ -7,7 +7,8 @@ import time
 # ROS
 import rospy
 
-from ius_msgs.msg import Trajectory
+# from ius_msgs.msg import Trajectory
+from trajectory_generator.msg import Trajectory
 from nav_msgs.msg import Odometry
 from mavros_msgs.msg import AttitudeTarget
 from mavros_msgs.msg import State
@@ -32,7 +33,7 @@ class Traj():
         for i, pos in enumerate(traj.pos):
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
-            ts.append(traj.time[i])
+            ts.append(traj.time[i]*3)
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)
@@ -178,8 +179,8 @@ def odom_cb(msg: Odometry):
     #     arming_client.call(True)
     #     setpoint_raw_pub.publish(u)
     #     return
-
-    if trajectory != None:
+    # print(len(trajectory._poss) == 0)
+    if trajectory != None and len(trajectory._poss) != 0:
         q = -np.array([msg.pose.pose.orientation.w, msg.pose.pose.orientation.x,
                       msg.pose.pose.orientation.y, msg.pose.pose.orientation.z])
         # q = np.array([1,0,0,0])
@@ -214,6 +215,7 @@ def odom_cb(msg: Odometry):
 
 def track_traj_cb(msg: Trajectory):
     global trajectory
+    # print(msg)
     trajectory = Traj(msg)
 
 

@@ -265,7 +265,7 @@ int main(int argc, char **argv)
     // traj_.addSegment(trajE_1.getCoef(0)[0], trajE_1.getCoef(1)[0], trajE_1.getCoef(2)[0], trajE_1.getTimes()[0]);                                 
     // traj_.addSegment(trajE_2.getCoef(0)[0], trajE_2.getCoef(1)[0], trajE_2.getCoef(2)[0], trajE_2.getTimes()[0]);
 
-    for (double t = 0.0; t < 5.6; t += 0.1)
+    for (double t = 0.0; t < 4.6; t += 0.1)
     {
       const auto& pt = traj_.evaluate(t);
       pos_sampled.push_back(pt);
