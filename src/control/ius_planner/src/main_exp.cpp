@@ -1,10 +1,10 @@
 // #include <plan_env/grid_map.h>
 
 #include "ius_planner/planner.h"
-#include <ius_msgs/PillarPos.h>
-#include <ius_msgs/TunnelPos.h>
-#include <ius_msgs/LoopPos.h>
-#include <ius_msgs/MazePos.h>
+// #include <ius_msgs/PillarPos.h>
+// #include <ius_msgs/TunnelPos.h>
+// #include <ius_msgs/LoopPos.h>
+// #include <ius_msgs/MazePos.h>
 #include "ius_planner/pos_param.h"
 
 // GridMap::Ptr grid_map_;
@@ -29,124 +29,6 @@ geometry_msgs::PoseStamped local_pos;
 void local_pos_cb(const geometry_msgs::PoseStamped::ConstPtr& msg) {
     local_pos = *msg;
 }
-
-/*Callback function to receive Lidar data */
-  // 1. pillar_cb -- get four pillar position, and meanwhile update four point 
-  Eigen::Vector3d pillar_pos1, pillar_pos2, pillar_pos3, pillar_pos4;
-  void pillar_cb(const ius_msgs::PillarPos::ConstPtr& msg) {
-      if (msg->pillar_id == 1)
-      {
-        pillar_pos1[0] = msg->pillar_pos.x;
-        pillar_pos1[1] = msg->pillar_pos.y;
-        pillar_pos1[2] = msg->pillar_pos.z;
-        mid_pos1_A[0] = pillar_pos1[0];
-        mid_pos1_A[1] = pillar_pos1[1] + 1.0;
-        mid_pos1_A[2] = 1.0;
-      }
-      else if (msg->pillar_id == 2)
-      {
-        pillar_pos2[0] = msg->pillar_pos.x;
-        pillar_pos2[1] = msg->pillar_pos.y;
-        pillar_pos2[2] = msg->pillar_pos.z;
-
-        mid_pos2_A[0] = pillar_pos2[0];
-        mid_pos2_A[1] = pillar_pos2[1] - 1.0;
-        mid_pos2_A[2] = 1.0;
-      }
-      else if (msg->pillar_id == 3)
-      {
-        pillar_pos3[0] = msg->pillar_pos.x;
-        pillar_pos3[1] = msg->pillar_pos.y;
-        pillar_pos3[2] = msg->pillar_pos.z;
-        
-
-        mid_pos3_A[0] = pillar_pos3[0];
-        mid_pos3_A[1] = pillar_pos3[1] + 1.0;
-        mid_pos3_A[2] = 1.0;
-      }
-      else if (msg->pillar_id == 4)
-      {
-        pillar_pos4[0] = msg->pillar_pos.x;
-        pillar_pos4[1] = msg->pillar_pos.y;
-        pillar_pos4[2] = msg->pillar_pos.z;
-
-        mid_pos4_A[0] = pillar_pos4[0];
-        mid_pos4_A[1] = pillar_pos4[1] - 1.0;
-        mid_pos4_A[2] = 1.0;
-      }
-      else
-      {
-        // do nothing
-      }
-  }
-
-  Eigen::Vector3d tunnel_pos_in;
-  Eigen::Vector3d tunnel_pos_out;
-  Eigen::Vector3d tunnel_direction;
-  // 2. tunnel_cb -- get tunnel center position, msg type: geometry_msgs::PoseStamped
-  void tunnel_cb  (const ius_msgs::TunnelPos::ConstPtr& msg) {
-
-    tunnel_pos_in[0] = msg->tunnel_pos_in.x;
-    tunnel_pos_in[1] = msg->tunnel_pos_in.y;
-    tunnel_pos_in[2] = msg->tunnel_pos_in.z;
-    tunnel_pos_out[0] = msg->tunnel_pos_out.x;
-    tunnel_pos_out[1] = msg->tunnel_pos_out.y;
-    tunnel_pos_out[2] = msg->tunnel_pos_out.z;
-
-    tunnel_direction = tunnel_pos_out - tunnel_pos_in;
-    tunnel_direction = tunnel_direction.normalized();
-
-    start_pos_B = tunnel_pos_in;
-    start_vel_B = tunnel_direction * 0.5;
-
-    mid_pos1_B = tunnel_pos_out;
-    mid_vel1_B = tunnel_direction * 0.5;
-
-  }
-
-  Eigen::Vector3d maze_pos_in;
-  Eigen::Vector3d maze_pos_mid;
-  Eigen::Vector3d maze_pos_out;
-
-// define a callback to rec maze pose
-  void maze_cb(const ius_msgs::MazePos::ConstPtr& msg) {
-    maze_pos_in[0] = msg->maze_pos_in.x;
-    maze_pos_in[1] = msg->maze_pos_in.y;
-    maze_pos_in[2] = msg->maze_pos_in.z;
-
-    maze_pos_mid[0] = msg->maze_pos_mid.x;
-    maze_pos_mid[1] = msg->maze_pos_mid.y;
-    maze_pos_mid[2] = msg->maze_pos_mid.z;
-
-    maze_pos_out[0] = msg->maze_pos_out.x;
-    maze_pos_out[1] = msg->maze_pos_out.y;
-    maze_pos_out[2] = msg->maze_pos_out.z;
-
-    start_pos_C = maze_pos_in;
-    mid_pos1_C = maze_pos_mid;
-    mid_pos2_C = maze_pos_out;
-
-  }
-
-  // 4. loop_cb -- get loop center position, msg type: geometry_msgs::PoseStamped
-  Eigen::Vector3d loop_pos;
-  Eigen::Vector3d m_loop_pos;
-  void loop_cb(const ius_msgs::LoopPos::ConstPtr& msg) {
-    if(msg->loop_id == 1){
-      loop_pos[0] = msg->loop_pos.x;
-      loop_pos[1] = msg->loop_pos.y;
-      loop_pos[2] = msg->loop_pos.z;
-
-      start_pos_D = loop_pos;
-    }
-    else if(msg->loop_id == 2){
-      m_loop_pos[0] = msg->loop_pos.x;
-      m_loop_pos[1] = msg->loop_pos.y;
-      m_loop_pos[2] = msg->loop_pos.z;
-      
-      start_pos_E = m_loop_pos; 
-    }
-  }
 
   void trajectory_update()
   {
@@ -204,20 +86,6 @@ int main(int argc, char **argv)
   local_pos_sub = nh.subscribe<geometry_msgs::PoseStamped>
                                     ("/mavros/local_position/pose", 1, local_pos_cb);
   traj_pub_ = nh.advertise<ius_msgs::Trajectory>("trajectory", 1);
-
-  pillar_sub = nh.subscribe<ius_msgs::PillarPos>
-                                    ("/ius_uav/pillar_pos", 50, pillar_cb); 
-
-  tunnel_sub = nh.subscribe<ius_msgs::TunnelPos> 
-                                    ("/ius_uav/tunnel_pos", 50, tunnel_cb);
-
-  // define a susbcriber to receive maze pose        
-
-  maze_sub = nh.subscribe<ius_msgs::MazePos> 
-                                    ("/ius_uav/maze_pos", 50, maze_cb);                          
-
-  loop_sub = nh.subscribe<ius_msgs::LoopPos> 
-                                    ("/ius_uav/loop_pos", 50, loop_cb);
 
   visualization_.reset(new ego_planner::PlanningVisualization(nh));  
 

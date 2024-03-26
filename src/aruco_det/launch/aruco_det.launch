@@ -1,0 +1,10 @@
+<launch>
+	
+   <node pkg="aruco_det" type="aruco_det.py" name="aruco_det" output="screen">
+     <!-- <param name="height"     value="2"/>
+     <param name="auto_arm_offboard"   type="bool"  value="True"/> -->
+     <param name='is_debug'  type="bool" value='True'/>
+   </node>
+</launch>
+
+
