@@ -21,6 +21,8 @@ class Algorithm:
         self.aruco_detected = False
 
         self.debug_jump_to = 11
+
+        self.arucos = []
         
         '''
         0: Arming
@@ -49,8 +51,17 @@ class Algorithm:
     def odom_callback(self, msg):
         self.odom = msg
     
-    def aruco_callback(self, msg):
-        self.aruco_pose = msg
+    def aruco_callback(self, msg: PoseStamped):
+        if self.state != 8 or self.aruco_detected == True:
+            return
+        self.arucos.append([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
+        if len(self.arucos) == 5:
+            if max(self.arucos[:,0]) - min(self.arucos[:,0]) < 0.1 and \
+               max(self.arucos[:,1]) - min(self.arucos[:,1]) < 0.1 and \
+                max(self.arucos[:,2]) - min(self.arucos[:,2]) < 0.1:
+                self.aruco_detected = True
+                self.aruco_pose = msg
+            self.arucos = self.arucos[1:]
     
     def mavros_state_callback(self, msg):
         self.mavros_state = msg
