@@ -1,0 +1,11 @@
+<launch>
+	
+   <node pkg="state_machine" type="state_machine.py" name="state_machine" output="screen">
+     <!-- <param name="height"     value="2"/>
+     <param name="auto_arm_offboard"   type="bool"  value="True"/> -->
+     <param name='is_debug'  type="bool" value='True'/>
+     <rosparam file="$(find state_machine)/config/path.yaml" command="load" />
+   </node>
+</launch>
+
+
