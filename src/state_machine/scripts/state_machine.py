@@ -3,7 +3,7 @@
 
 import rospy
 from geometry_msgs.msg import PoseStamped
-from mavros_msgs.srv import CommandBool
+from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 from mavros_msgs.msg import State
 from nav_msgs.msg import Odometry, Path
 import time
@@ -21,7 +21,7 @@ class Algorithm:
         self.car_detected = False
         self.aruco_detected = False
 
-        self.debug_jump_to = 8
+        self.debug_jump_to = 1
 
         self.arucos = []
         
@@ -46,6 +46,7 @@ class Algorithm:
         self.mavros_state_sub = rospy.Subscriber("/mavros/state", State, self.mavros_state_callback)
 
         self.arming_client = rospy.ServiceProxy("/mavros/cmd/arming", CommandBool)
+        self.set_mode_client = rospy.ServiceProxy("/mavros/set_mode", SetMode)
 
         self.target_point_pub = rospy.Publisher("/waypoint_generator/waypoints", Path, queue_size=10)
     
@@ -63,7 +64,7 @@ class Algorithm:
                max(aruco_tmp[:,1]) - min(aruco_tmp[:,1]) < 0.1 and \
                 max(aruco_tmp[:,2]) - min(aruco_tmp[:,2]) < 0.1:
                 self.aruco_detected = True
-                self.aruco_pose = [msg.pose.position.x, msg.pose.position.y, 0]
+                self.aruco_pose = [msg.pose.position.x, msg.pose.position.y, 0.05]
                 # self.aruco_pose.pose.position.z = 0.0
                 print(self.aruco_pose)
             self.arucos = self.arucos[1:]
@@ -72,8 +73,8 @@ class Algorithm:
         self.mavros_state = msg
     
     def is_close(self, odom: Odometry, pose: list):
-        print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]))
-        if abs(odom.pose.pose.position.x - pose[0]) < 0.1 and abs(odom.pose.pose.position.y - pose[1]) < 0.1 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
+        # print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]))
+        if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.05:
             return True
         return False
 
@@ -100,6 +101,7 @@ class Algorithm:
         # Taking off
         elif self.state == 1:
             # print(self.takeoff_point)
+            # print(self.odom.pose.pose.position)
             if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
                 self.state = 2
                 return
@@ -119,7 +121,7 @@ class Algorithm:
         # Going to the 2nd square
         elif self.state == 3:
             if self.debug_jump_to > 3 or self.is_close(self.odom, self.second_square_point_pre):
-                self.state = 4
+                self.state = 5
                 return
             else:
                 self.go_to(self.second_square_point_pre)
@@ -168,7 +170,7 @@ class Algorithm:
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.1:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.3:
                 self.state = 10
                 return
             else:
@@ -180,7 +182,10 @@ class Algorithm:
             if self.debug_jump_to > 10 or self.mavros_state.armed == False:
                 self.state = 11
                 return
-            self.arming_client.call(False)
+            # self.arming_client.call(False)
+            # disarm_command = CommandBoolRequest(value=False)
+            # self.arming_client.call(disarm_command)
+            self.set_mode_client(0,'AUTO.LAND')
             return
         
         # Finish

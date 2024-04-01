@@ -100,6 +100,7 @@ class Algorithm:
                     draw_det_marker_img = cv2.drawFrameAxes(draw_det_marker_img, self.camera_Matrix, self.distortion_Matrix,
                                                                 rvec[i, :, :], tvec[i, :, :], 0.03)
                     self.det_vis_pub.publish(self.bridge.cv2_to_imgmsg(draw_det_marker_img))
+                    print("detect time: ", rospy.Time.now().to_sec())
                 break
 
 if __name__ == "__main__":
