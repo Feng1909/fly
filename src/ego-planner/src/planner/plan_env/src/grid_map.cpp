@@ -770,8 +770,8 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
   {
     pt = latest_cloud.points[i];
     
-    if (std::sqrt(pt.x*pt.x + pt.y*pt.y + pt.z*pt.z) <= 0.2)
-      continue;
+    // if (std::sqrt(pt.x*pt.x + pt.y*pt.y + pt.z*pt.z) <= 0.5)
+    //   continue;
 
     p3d(0) = pt.x, p3d(1) = pt.y, p3d(2) = pt.z;
 
@@ -782,6 +782,8 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
     if (fabs(devi(0)) < mp_.local_update_range_(0) && fabs(devi(1)) < mp_.local_update_range_(1) &&
         fabs(devi(2)) < mp_.local_update_range_(2))
     {
+      if (devi.norm() < 0.3)
+        continue;
 
       /* inflate the point */
       for (int x = -inf_step; x <= inf_step; ++x)

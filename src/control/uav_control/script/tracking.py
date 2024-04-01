@@ -33,7 +33,7 @@ class Traj():
         for i, pos in enumerate(traj.pos):
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
-            ts.append(traj.time[i])
+            ts.append(traj.time[i]*2)
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)
@@ -207,7 +207,7 @@ def odom_cb(msg: Odometry):
         u.body_rate.x = wx
         u.body_rate.y = wy
         u.body_rate.z = wz
-        u.thrust = Tt/quad._a_z_max
+        u.thrust = min(Tt/quad._a_z_max, 0.38)
         # u.thrust = 0
         setpoint_raw_pub.publish(u)
         print(u.thrust, u.body_rate.x, u.body_rate.y, u.body_rate.z)

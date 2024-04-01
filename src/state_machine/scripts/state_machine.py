@@ -5,8 +5,9 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.srv import CommandBool
 from mavros_msgs.msg import State
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry, Path
 import time
+import numpy as np
 
 class Algorithm:
     
@@ -15,12 +16,12 @@ class Algorithm:
         self.load_params()
         self.odom = Odometry()
         self.mavros_state = State()
-        self.aruco_pose = PoseStamped()
+        self.aruco_pose = []
         self.target_point = PoseStamped()
         self.car_detected = False
         self.aruco_detected = False
 
-        self.debug_jump_to = 11
+        self.debug_jump_to = 8
 
         self.arucos = []
         
@@ -46,7 +47,7 @@ class Algorithm:
 
         self.arming_client = rospy.ServiceProxy("/mavros/cmd/arming", CommandBool)
 
-        self.target_point_pub = rospy.Publisher("/target_point", PoseStamped, queue_size=10)
+        self.target_point_pub = rospy.Publisher("/waypoint_generator/waypoints", Path, queue_size=10)
     
     def odom_callback(self, msg):
         self.odom = msg
@@ -56,29 +57,39 @@ class Algorithm:
             return
         self.arucos.append([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
         if len(self.arucos) == 5:
-            if max(self.arucos[:,0]) - min(self.arucos[:,0]) < 0.1 and \
-               max(self.arucos[:,1]) - min(self.arucos[:,1]) < 0.1 and \
-                max(self.arucos[:,2]) - min(self.arucos[:,2]) < 0.1:
+            aruco_tmp = np.array(self.arucos)
+            # if max(aruco_tmp[:,0])
+            if max(aruco_tmp[:,0]) - min(aruco_tmp[:,0]) < 0.1 and \
+               max(aruco_tmp[:,1]) - min(aruco_tmp[:,1]) < 0.1 and \
+                max(aruco_tmp[:,2]) - min(aruco_tmp[:,2]) < 0.1:
                 self.aruco_detected = True
-                self.aruco_pose = msg
+                self.aruco_pose = [msg.pose.position.x, msg.pose.position.y, 0]
+                # self.aruco_pose.pose.position.z = 0.0
+                print(self.aruco_pose)
             self.arucos = self.arucos[1:]
     
     def mavros_state_callback(self, msg):
         self.mavros_state = msg
     
     def is_close(self, odom: Odometry, pose: list):
+        print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]))
         if abs(odom.pose.pose.position.x - pose[0]) < 0.1 and abs(odom.pose.pose.position.y - pose[1]) < 0.1 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
             return True
         return False
 
     def go_to(self, pose: list):
+        path_to_pub = Path()
+        path_to_pub.poses.clear()
         self.target_point.pose.position.x = pose[0]
         self.target_point.pose.position.y = pose[1]
         self.target_point.pose.position.z = pose[2]
-        self.target_point_pub.publish(self.target_point)
+        path_to_pub.poses.append(self.target_point)
+        # print(path_to_pub)
+        self.target_point_pub.publish(path_to_pub)
 
     def run(self):
         # Arming
+        print('state: ', self.state)
         if self.state == 0:
             if self.mavros_state.armed == True or self.debug_jump_to > 0:
                 self.state = 1
@@ -88,7 +99,8 @@ class Algorithm:
         
         # Taking off
         elif self.state == 1:
-            if self.debug_jump_to > 1 or self.is_close(self.odom.pose.pose.position, self.takeoff_point):
+            # print(self.takeoff_point)
+            if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
                 self.state = 2
                 return
             else:
@@ -97,7 +109,7 @@ class Algorithm:
         
         # Acrossing the 1st square
         elif self.state == 2:
-            if self.debug_jump_to > 2 or self.is_close(self.odom.pose.pose.position, self.first_square_point):
+            if self.debug_jump_to > 2 or self.is_close(self.odom, self.first_square_point):
                 self.state = 3
                 return
             else:
@@ -106,7 +118,7 @@ class Algorithm:
         
         # Going to the 2nd square
         elif self.state == 3:
-            if self.debug_jump_to > 3 or self.is_close(self.odom.pose.pose.position, self.second_square_point_pre):
+            if self.debug_jump_to > 3 or self.is_close(self.odom, self.second_square_point_pre):
                 self.state = 4
                 return
             else:
@@ -115,7 +127,7 @@ class Algorithm:
         
         # Acrossing the 2nd square
         elif self.state == 4:
-            if self.debug_jump_to > 4 or self.is_close(self.odom.pose.pose.position, self.second_square_point_end):
+            if self.debug_jump_to > 4 or self.is_close(self.odom, self.second_square_point_end):
                 self.state = 5
                 return
             else:
@@ -124,7 +136,7 @@ class Algorithm:
         
         # Going to the car
         elif self.state == 5:
-            if self.debug_jump_to > 5 or self.is_close(self.odom.pose.pose.position, self.car_point):
+            if self.debug_jump_to > 5 or self.is_close(self.odom, self.car_point):
                 self.state = 6
                 return
             else:
@@ -133,14 +145,14 @@ class Algorithm:
         
         # Recognizing the car
         elif self.state == 6:
-            if self.debug_jump_to > 6 or self.car_detected == True:
+            if self.debug_jump_to > 6 or self.car_detected == False:
                 self.state = 7
                 return
             return
         
         # Going to land
         elif self.state == 7:
-            if self.debug_jump_to > 7 or self.is_close(self.odom.pose.pose.position, self.land_point):
+            if self.debug_jump_to > 7 or self.is_close(self.odom, self.land_point):
                 self.state = 8
                 return
             else:
