@@ -351,9 +351,13 @@ namespace ego_planner
 
     //cout << "info->velocity_traj_=" << info->velocity_traj_.get_control_points() << endl;
 
-    start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
-    start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
-    start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
+    // start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
+    // start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
+    // start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
+
+    start_pt_ = odom_pos_;
+    start_vel_ = odom_vel_;
+    start_acc_.setZero();
 
     bool success = callReboundReplan(false, false);
 
