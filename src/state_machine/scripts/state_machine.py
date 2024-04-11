@@ -2,11 +2,12 @@
 #coding=utf-8
 
 import rospy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Twist
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 from mavros_msgs.msg import State
 from nav_msgs.msg import Odometry, Path
-import time
+# import time
+from std_msgs.msg import Int8
 import numpy as np
 
 class Algorithm:
@@ -18,10 +19,11 @@ class Algorithm:
         self.mavros_state = State()
         self.aruco_pose = []
         self.target_point = PoseStamped()
+        self.aruco_local = PoseStamped()
         self.car_detected = False
         self.aruco_detected = False
 
-        self.debug_jump_to = 1
+        self.debug_jump_to = 9
 
         self.arucos = []
         
@@ -43,16 +45,24 @@ class Algorithm:
 
         self.odom_sub = rospy.Subscriber("/mavros/local_position/odom", Odometry, self.odom_callback)
         self.aruco_sub = rospy.Subscriber("/aruco_det/target_loc", PoseStamped, self.aruco_callback)
+        self.aruco_local_sub = rospy.Subscriber("/aruco_det/target_loc_local", PoseStamped, self.aruco_local_callback)
         self.mavros_state_sub = rospy.Subscriber("/mavros/state", State, self.mavros_state_callback)
 
         self.arming_client = rospy.ServiceProxy("/mavros/cmd/arming", CommandBool)
         self.set_mode_client = rospy.ServiceProxy("/mavros/set_mode", SetMode)
 
         self.target_point_pub = rospy.Publisher("/waypoint_generator/waypoints", Path, queue_size=10)
+
+        self.state_machine_state_pub = rospy.Publisher("/state_machine", Int8, queue_size=10)
+
+        self.vel_cmd_pub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, queue_size=10)
     
     def odom_callback(self, msg):
         self.odom = msg
     
+    def aruco_local_callback(self, msg: PoseStamped):
+        self.aruco_local = msg
+
     def aruco_callback(self, msg: PoseStamped):
         if self.state != 8 or self.aruco_detected == True:
             return
@@ -91,6 +101,9 @@ class Algorithm:
     def run(self):
         # Arming
         print('state: ', self.state)
+        state_now = Int8()
+        state_now.data = self.state
+        self.state_machine_state_pub.publish(state_now)
         if self.state == 0:
             if self.mavros_state.armed == True or self.debug_jump_to > 0:
                 self.state = 1
@@ -170,11 +183,18 @@ class Algorithm:
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.3:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < -10.3:
                 self.state = 10
                 return
             else:
-                self.go_to(self.aruco_pose)
+                # self.go_to(self.aruco_pose)
+                vel_cmd = Twist()
+                vel_cmd.linear.z = 0.05
+                vel_cmd.linear.x = 0
+                vel_cmd.linear.y = 0
+                # vel_cmd.linear.x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
+                # vel_cmd.linear.y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
+                self.vel_cmd_pub.publish(vel_cmd)
                 return
         
         # Disarming

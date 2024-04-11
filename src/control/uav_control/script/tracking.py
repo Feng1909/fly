@@ -2,7 +2,8 @@
 
 import numpy as np
 import casadi as ca
-import time
+# import time
+from std_msgs.msg import Int8
 
 # ROS
 import rospy
@@ -30,10 +31,13 @@ class Traj():
         poss = []
         yaws = []
         ts = []
+        time_plus = 0.0
+        pos_init = traj.pos[0]
         for i, pos in enumerate(traj.pos):
+            time_plus += abs(pos.z - pos_init.z)
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
-            ts.append(traj.time[i]*1.5)
+            ts.append(traj.time[i] + time_plus)
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)
@@ -139,6 +143,8 @@ setpoint_raw_pub = rospy.Publisher(
     "/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=1, tcp_nodelay=True)
 
 mavros_state = None
+state_machine = Int8()
+state_machine.data = 0
 
 
 def mavros_state_cb(msg: State):
@@ -160,7 +166,7 @@ tracker.define_opt()
 
 
 def odom_cb(msg: Odometry):
-    global mavros_state, auto_offboard
+    global mavros_state, auto_offboard, state_machine
 
     if mavros_state == None or not mavros_state.connected:
         return
@@ -209,8 +215,9 @@ def odom_cb(msg: Odometry):
         u.body_rate.z = wz
         u.thrust = min(Tt/quad._a_z_max, 0.38)
         # u.thrust = 0
-        setpoint_raw_pub.publish(u)
-        print(u.thrust, u.body_rate.x, u.body_rate.y, u.body_rate.z)
+        if state_machine < 9:
+            setpoint_raw_pub.publish(u)
+            print(u.thrust, u.body_rate.x, u.body_rate.y, u.body_rate.z)
 
 
 def track_traj_cb(msg: Trajectory):
@@ -218,9 +225,13 @@ def track_traj_cb(msg: Trajectory):
     # print(msg)
     trajectory = Traj(msg)
 
+def state_callback(msg: Int8):
+    global state_machine
+    state_machine = msg.data
 
 rospy.Subscriber("~odom", Odometry, odom_cb, queue_size=1, tcp_nodelay=True)
 rospy.Subscriber("~track_traj", Trajectory, track_traj_cb,
                  queue_size=1, tcp_nodelay=True)
+rospy.Subscriber('/state_machine', Int8, state_callback)
 
 rospy.spin()

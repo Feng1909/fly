@@ -39,7 +39,8 @@ class Algorithm:
         self.camera_pub = rospy.Publisher('/aruco_det/vis', Image, queue_size=1)
         self.det_vis_pub = rospy.Publisher('/aruco_det/det_vis', Image, queue_size=1)
         self.detect_result = rospy.Publisher('/aruco_det/target_loc', PoseStamped, queue_size=1)
-    
+        self.detect_result_local = rospy.Publisher('/aruco_det/target_loc_local', PoseStamped, queue_size=1)
+
     def pose_callback(self, msg):
         self.state = msg
     
@@ -83,6 +84,10 @@ class Algorithm:
                 pos_camera = np.array([tvec[0][0][0],
                                        tvec[0][0][1],
                                        -tvec[0][0][2]])
+                target_loc_local = PoseStamped()
+                target_loc_local.pose.position.x = corners[0].sum(axis=1)[0][0] / 4
+                target_loc_local.pose.position.y = corners[0].sum(axis=1)[0][1] / 4
+                self.detect_result_local.publish(target_loc_local)
                 pos_in_drone = self.quat_rot_vector(self.q_camera, pos_camera)
                 q_drone = np.array([now_state.pose.pose.orientation.w,
                                     now_state.pose.pose.orientation.x,
