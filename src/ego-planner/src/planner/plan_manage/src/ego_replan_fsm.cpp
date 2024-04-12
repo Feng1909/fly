@@ -161,6 +161,7 @@ namespace ego_planner
     odom_vel_(0) = msg->twist.twist.linear.x;
     odom_vel_(1) = msg->twist.twist.linear.y;
     odom_vel_(2) = msg->twist.twist.linear.z;
+    // odom_vel_(2) = 0.0;
 
     //odom_acc_ = estimateAcc( msg );
 
@@ -352,11 +353,12 @@ namespace ego_planner
     //cout << "info->velocity_traj_=" << info->velocity_traj_.get_control_points() << endl;
 
     // start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
-    // start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
+    start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
     // start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
 
     start_pt_ = odom_pos_;
-    start_vel_ = odom_vel_;
+    // start_vel_ = odom_vel_;
+    // start_vel_[2] = 0.0;
     start_acc_.setZero();
 
     bool success = callReboundReplan(false, false);

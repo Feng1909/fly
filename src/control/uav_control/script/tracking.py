@@ -37,7 +37,7 @@ class Traj():
             time_plus += abs(pos.z - pos_init.z)
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
-            ts.append(traj.time[i] + time_plus)
+            ts.append(traj.time[i] + time_plus*1.5)
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)
@@ -215,7 +215,7 @@ def odom_cb(msg: Odometry):
         u.body_rate.z = wz
         u.thrust = min(Tt/quad._a_z_max, 0.38)
         # u.thrust = 0
-        if state_machine < 9:
+        if state_machine.data < 9:
             setpoint_raw_pub.publish(u)
             print(u.thrust, u.body_rate.x, u.body_rate.y, u.body_rate.z)
 
@@ -227,7 +227,7 @@ def track_traj_cb(msg: Trajectory):
 
 def state_callback(msg: Int8):
     global state_machine
-    state_machine = msg.data
+    state_machine = msg
 
 rospy.Subscriber("~odom", Odometry, odom_cb, queue_size=1, tcp_nodelay=True)
 rospy.Subscriber("~track_traj", Trajectory, track_traj_cb,

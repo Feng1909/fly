@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 from mavros_msgs.srv import CommandBool, CommandBoolRequest, SetMode, SetModeRequest
 from mavros_msgs.msg import State
 from nav_msgs.msg import Odometry, Path
-# import time
+import time
 from std_msgs.msg import Int8
 import numpy as np
 
@@ -23,9 +23,11 @@ class Algorithm:
         self.car_detected = False
         self.aruco_detected = False
 
-        self.debug_jump_to = 9
+        self.debug_jump_to = 0
 
         self.arucos = []
+
+        self.stay_time = 1.0
         
         '''
         0: Arming
@@ -116,6 +118,7 @@ class Algorithm:
             # print(self.takeoff_point)
             # print(self.odom.pose.pose.position)
             if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
+                time.sleep(self.stay_time)
                 self.state = 2
                 return
             else:
@@ -125,6 +128,7 @@ class Algorithm:
         # Acrossing the 1st square
         elif self.state == 2:
             if self.debug_jump_to > 2 or self.is_close(self.odom, self.first_square_point):
+                time.sleep(self.stay_time)
                 self.state = 3
                 return
             else:
@@ -134,6 +138,7 @@ class Algorithm:
         # Going to the 2nd square
         elif self.state == 3:
             if self.debug_jump_to > 3 or self.is_close(self.odom, self.second_square_point_pre):
+                time.sleep(self.stay_time)
                 self.state = 5
                 return
             else:
@@ -143,6 +148,7 @@ class Algorithm:
         # Acrossing the 2nd square
         elif self.state == 4:
             if self.debug_jump_to > 4 or self.is_close(self.odom, self.second_square_point_end):
+                time.sleep(self.stay_time)
                 self.state = 5
                 return
             else:
@@ -152,6 +158,7 @@ class Algorithm:
         # Going to the car
         elif self.state == 5:
             if self.debug_jump_to > 5 or self.is_close(self.odom, self.car_point):
+                time.sleep(self.stay_time)
                 self.state = 6
                 return
             else:
@@ -168,6 +175,7 @@ class Algorithm:
         # Going to land
         elif self.state == 7:
             if self.debug_jump_to > 7 or self.is_close(self.odom, self.land_point):
+                time.sleep(self.stay_time)
                 self.state = 8
                 return
             else:
@@ -183,13 +191,13 @@ class Algorithm:
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < -10.3:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.3:
                 self.state = 10
                 return
             else:
                 # self.go_to(self.aruco_pose)
                 vel_cmd = Twist()
-                vel_cmd.linear.z = 0.05
+                vel_cmd.linear.z = -0.1
                 vel_cmd.linear.x = 0
                 vel_cmd.linear.y = 0
                 # vel_cmd.linear.x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
