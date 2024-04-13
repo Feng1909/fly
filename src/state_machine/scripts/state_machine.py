@@ -191,7 +191,7 @@ class Algorithm:
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.3:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.1:
                 self.state = 10
                 return
             else:

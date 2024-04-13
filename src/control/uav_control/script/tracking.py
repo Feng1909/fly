@@ -37,15 +37,17 @@ class Traj():
         ts = []
         time_plus = 0.0
         pos_init = traj.pos[0]
-        z_total = 0
-        for i, pos in enumerate(traj.pos):
-            z_total += pos.z
+        # z_total = 0
+        # for i, pos in enumerate(traj.pos):
+        #     z_total += pos.z
         for i, pos in enumerate(traj.pos):
             time_plus += abs(pos.z - pos_init.z)
-            if state_machine.data <= 1:
-                poss.append([pos.x, pos.y, pos.z])
-            else:
-                poss.append([pos.x, pos.y, z_total/len(traj.pos)])
+            pos_init = pos
+            # if state_machine.data <= 1:
+            #     poss.append([pos.x, pos.y, pos.z])
+            # else:
+            #     poss.append([pos.x, pos.y, z_total/len(traj.pos)])
+            poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
             ts.append(traj.time[i] + time_plus*1.5)
 
