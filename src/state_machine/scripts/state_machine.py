@@ -27,7 +27,7 @@ class Algorithm:
 
         self.arucos = []
 
-        self.stay_time = 1.0
+        self.stay_time = 0.5
         
         '''
         0: Arming
@@ -200,8 +200,8 @@ class Algorithm:
                 vel_cmd.linear.z = -0.1
                 vel_cmd.linear.x = 0
                 vel_cmd.linear.y = 0
-                # vel_cmd.linear.x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
-                # vel_cmd.linear.y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
+                vel_cmd.linear.x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
+                vel_cmd.linear.y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
                 self.vel_cmd_pub.publish(vel_cmd)
                 return
         

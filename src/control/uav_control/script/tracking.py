@@ -26,16 +26,26 @@ sys.path += [BASEPATH]
 from tracker import TrackerMPC
 from quadrotor_control import QuadrotorSimpleModel
 
+state_machine = Int8()
+state_machine.data = 0
+
 class Traj():
     def __init__(self, traj: Trajectory):
+        global state_machine
         poss = []
         yaws = []
         ts = []
         time_plus = 0.0
         pos_init = traj.pos[0]
+        z_total = 0
+        for i, pos in enumerate(traj.pos):
+            z_total += pos.z
         for i, pos in enumerate(traj.pos):
             time_plus += abs(pos.z - pos_init.z)
-            poss.append([pos.x, pos.y, pos.z])
+            if state_machine.data <= 1:
+                poss.append([pos.x, pos.y, pos.z])
+            else:
+                poss.append([pos.x, pos.y, z_total/len(traj.pos)])
             yaws.append(traj.yaw[i])
             ts.append(traj.time[i] + time_plus*1.5)
 
@@ -143,8 +153,6 @@ setpoint_raw_pub = rospy.Publisher(
     "/mavros/setpoint_raw/attitude", AttitudeTarget, queue_size=1, tcp_nodelay=True)
 
 mavros_state = None
-state_machine = Int8()
-state_machine.data = 0
 
 
 def mavros_state_cb(msg: State):

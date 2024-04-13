@@ -352,11 +352,21 @@ namespace ego_planner
 
     //cout << "info->velocity_traj_=" << info->velocity_traj_.get_control_points() << endl;
 
-    // start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
+    double dis_min = 9999;
+    for (double t_tmp = 0.0; t_tmp < info->duration_; t_tmp += 0.1)
+    {
+      Eigen::Vector3d pos = info->position_traj_.evaluateDeBoorT(t_tmp);
+      if ((pos - odom_pos_).norm() < dis_min)
+      {
+        dis_min = (pos - odom_pos_).norm();
+        t_cur = t_tmp;
+      }
+    }
+    start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
     start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
     // start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
 
-    start_pt_ = odom_pos_;
+    // start_pt_ = odom_pos_;
     // start_vel_ = odom_vel_;
     // start_vel_[2] = 0.0;
     start_acc_.setZero();
@@ -409,7 +419,7 @@ namespace ego_planner
           if (t - t_cur < emergency_time_) // 0.8s of emergency time
           {
             ROS_WARN("Suddenly discovered obstacles. emergency stop! time=%f", t - t_cur);
-            changeFSMExecState(EMERGENCY_STOP, "SAFETY");
+            // changeFSMExecState(EMERGENCY_STOP, "SAFETY");
           }
           else
           {
