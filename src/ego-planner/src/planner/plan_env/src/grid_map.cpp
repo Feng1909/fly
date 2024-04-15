@@ -600,12 +600,12 @@ void GridMap::clearAndInflateLocalMap()
   Eigen::Vector3i inf_pt;
 
   // clear outdated data
-  for (int x = md_.local_bound_min_(0); x <= md_.local_bound_max_(0); ++x)
-    for (int y = md_.local_bound_min_(1); y <= md_.local_bound_max_(1); ++y)
-      for (int z = md_.local_bound_min_(2); z <= md_.local_bound_max_(2); ++z)
-      {
-        md_.occupancy_buffer_inflate_[toAddress(x, y, z)] = 0;
-      }
+  // for (int x = md_.local_bound_min_(0); x <= md_.local_bound_max_(0); ++x)
+  //   for (int y = md_.local_bound_min_(1); y <= md_.local_bound_max_(1); ++y)
+  //     for (int z = md_.local_bound_min_(2); z <= md_.local_bound_max_(2); ++z)
+  //     {
+  //       md_.occupancy_buffer_inflate_[toAddress(x, y, z)] = 0;
+  //     }
 
   // inflate obstacles
   for (int x = md_.local_bound_min_(0); x <= md_.local_bound_max_(0); ++x)
@@ -747,8 +747,8 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
   if (isnan(md_.camera_pos_(0)) || isnan(md_.camera_pos_(1)) || isnan(md_.camera_pos_(2)))
     return;
 
-  this->resetBuffer(md_.camera_pos_ - mp_.local_update_range_,
-                    md_.camera_pos_ + mp_.local_update_range_);
+  // this->resetBuffer(md_.camera_pos_ - mp_.local_update_range_,
+  //                   md_.camera_pos_ + mp_.local_update_range_);
 
   pcl::PointXYZ pt;
   Eigen::Vector3d p3d, p3d_inf;

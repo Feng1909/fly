@@ -38,18 +38,21 @@ class Traj():
         time_plus = 0.0
         pos_init = traj.pos[0]
         # z_total = 0
+
         # for i, pos in enumerate(traj.pos):
         #     z_total += pos.z
         for i, pos in enumerate(traj.pos):
             time_plus += abs(pos.z - pos_init.z)
             pos_init = pos
-            # if state_machine.data <= 1:
-            #     poss.append([pos.x, pos.y, pos.z])
-            # else:
-            #     poss.append([pos.x, pos.y, z_total/len(traj.pos)])
             poss.append([pos.x, pos.y, pos.z])
             yaws.append(traj.yaw[i])
             ts.append(traj.time[i] + time_plus*1.5)
+        if len(poss) >= 5:
+            if (poss[0][0] - poss[2][0])**2 + (poss[0][1] - poss[2][1])**2 + (poss[0][2] - poss[2][2])**2 < 0.001:
+                poss = poss[2:]
+                yaws = yaws[2:]
+                ts = ts[2:]
+                print(poss)
 
         self._poss = np.array(poss)
         self._yaws = np.array(yaws)

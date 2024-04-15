@@ -28,6 +28,11 @@ class Algorithm:
         self.arucos = []
 
         self.stay_time = 0.5
+
+        self.kp = 1.2
+        self.kd = 0.3
+        self.pre_error_x = 0.0
+        self.pre_error_y = 0.0
         
         '''
         0: Arming
@@ -86,7 +91,7 @@ class Algorithm:
     
     def is_close(self, odom: Odometry, pose: list):
         # print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]))
-        if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.05:
+        if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
             return True
         return False
 
@@ -191,17 +196,21 @@ class Algorithm:
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.1:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.2:
                 self.state = 10
                 return
             else:
                 # self.go_to(self.aruco_pose)
                 vel_cmd = Twist()
-                vel_cmd.linear.z = -0.1
+                vel_cmd.linear.z = -0.2
                 vel_cmd.linear.x = 0
                 vel_cmd.linear.y = 0
-                vel_cmd.linear.x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
-                vel_cmd.linear.y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
+                error_x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
+                error_y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
+                derivative_x = error_x - self.pre_error_x
+                derivative_y = error_y - self.pre_error_y
+                vel_cmd.linear.x = self.kp * error_x + self.kd * derivative_x
+                vel_cmd.linear.y = self.kp * error_y + self.kd * derivative_y
                 self.vel_cmd_pub.publish(vel_cmd)
                 return
         

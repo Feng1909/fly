@@ -244,7 +244,8 @@ namespace ego_planner
     case GEN_NEW_TRAJ:
     {
       start_pt_ = odom_pos_;
-      start_vel_ = odom_vel_;
+      // start_vel_ = odom_vel_;
+      start_vel_.setZero();
       start_acc_.setZero();
 
       // Eigen::Vector3d rot_x = odom_orient_.toRotationMatrix().block(0, 0, 3, 1);
@@ -363,12 +364,13 @@ namespace ego_planner
       }
     }
     start_pt_ = info->position_traj_.evaluateDeBoorT(t_cur);
-    start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
+    // start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
     // start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
 
     // start_pt_ = odom_pos_;
     // start_vel_ = odom_vel_;
     // start_vel_[2] = 0.0;
+    start_vel_.setZero();
     start_acc_.setZero();
 
     bool success = callReboundReplan(false, false);
