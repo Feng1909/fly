@@ -30,7 +30,7 @@ class Algorithm:
         self.stay_time = 0.5
 
         self.kp = 1.2
-        self.kd = 0.3
+        self.kd = 0.6
         self.pre_error_x = 0.0
         self.pre_error_y = 0.0
         
