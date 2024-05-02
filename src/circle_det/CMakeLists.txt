@@ -10,6 +10,7 @@ project(circle_det)
 find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
+  geometry_msgs
   roscpp
   sensor_msgs
 )
