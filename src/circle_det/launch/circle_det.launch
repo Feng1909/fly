@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="circle_det" type="circle_det_node" name="circle_det_node" output="screen">
+        <param name="image_topic" type="string" value="/camera/image_raw"/>
+        <param name="circle_topic" type="string" value="/circle"/>
+    </node>
+</launch>

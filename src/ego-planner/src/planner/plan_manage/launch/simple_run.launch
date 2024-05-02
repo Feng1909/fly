@@ -1,7 +1,7 @@
 <launch>
   <!-- size of map, change the size inflate x, y, z according to your application -->
-  <arg name="map_size_x" value="40.0"/>
-  <arg name="map_size_y" value="40.0"/>
+  <arg name="map_size_x" value="10.0"/>
+  <arg name="map_size_y" value="10.0"/>
   <arg name="map_size_z" value=" 3.0"/>
 
   <!-- topic of your odometry such as VIO or LIO -->
@@ -32,7 +32,7 @@
     <arg name="fy" value="387.229248046875"/>
 
     <!-- maximum velocity and acceleration the drone will reach -->
-    <arg name="max_vel" value="1.0" />
+    <arg name="max_vel" value="0.3" />
     <arg name="max_acc" value="3.0" />
 
     <!--always set to 1.5 times grater than sensing horizen-->

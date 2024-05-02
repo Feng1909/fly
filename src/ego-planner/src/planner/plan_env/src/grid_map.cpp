@@ -769,6 +769,7 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
   for (size_t i = 0; i < latest_cloud.points.size(); ++i)
   {
     pt = latest_cloud.points[i];
+    pt.z += 0.1;
     
     // if (std::sqrt(pt.x*pt.x + pt.y*pt.y + pt.z*pt.z) <= 0.5)
     //   continue;

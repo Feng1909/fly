@@ -90,7 +90,7 @@ class Algorithm:
         self.mavros_state = msg
     
     def is_close(self, odom: Odometry, pose: list):
-        # print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]))
+        # print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]), abs(odom.pose.pose.position.z - pose[2]))
         if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
             return True
         return False
@@ -112,16 +112,18 @@ class Algorithm:
         state_now.data = self.state
         self.state_machine_state_pub.publish(state_now)
         if self.state == 0:
-            if self.mavros_state.armed == True or self.debug_jump_to > 0:
-                self.state = 1
+            if self.mavros_state.mode == "OFFBOARD":
+                if self.mavros_state.armed == True or self.debug_jump_to > 0:
+                    self.state = 1
+                    return
+                self.arming_client.call(True)
                 return
-            self.arming_client.call(True)
-            return
+            else:
+                print('waiting offboard')
+                return
         
         # Taking off
         elif self.state == 1:
-            # print(self.takeoff_point)
-            # print(self.odom.pose.pose.position)
             if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
                 time.sleep(self.stay_time)
                 self.state = 2
@@ -143,8 +145,8 @@ class Algorithm:
         # Going to the 2nd square
         elif self.state == 3:
             if self.debug_jump_to > 3 or self.is_close(self.odom, self.second_square_point_pre):
-                time.sleep(self.stay_time)
-                self.state = 5
+                # time.sleep(self.stay_time)
+                # self.state = 5
                 return
             else:
                 self.go_to(self.second_square_point_pre)
