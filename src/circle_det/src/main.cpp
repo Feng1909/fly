@@ -33,17 +33,22 @@
 
 #include <geometry_msgs/PoseStamped.h>
 
+#include "circle_det/circles.h"
+
 ros::Publisher pub, point_all_pub;
 pcl::PCLPointCloud2 cloud_all;
-std::vector<Eigen::Vector3d>circles;
 int circle_num = 1;
 bool finish_job = false;
+
+circle_det::circles circles_msg;
 
 void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
 {
     // pcl::concatenatePointCloud(*cloud_msg, cloud_msg);
-    if (finish_job)
+    if (finish_job) {
+        pub.publish(circles_msg);
         return;
+    }
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*cloud_msg, pcl_pc2);
 
@@ -117,9 +122,15 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
         if (center[0]>2 || center[0]<1 || center[1]>1 || center[1]<-1)
             continue;
 
-        circles.push_back(center);
+        geometry_msgs::Point center_msg;
+        center_msg.x = center[0];
+        center_msg.y = center[1];
+        center_msg.z = center[2];
+        std::cout<<"get 1"<<std::endl;
         // pub.publish(circles);
-        if (circles.size() == circle_num){
+        circles_msg.pos.push_back(center_msg);
+        pub.publish(circles_msg);
+        if (circles_msg.pos.size() == circle_num){
             finish_job = true;
             return;
         }
@@ -131,7 +142,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "circle_det_node");
     ros::NodeHandle nh;
 
-    // pub = nh.advertise<std::vector<Eigen::Vector3d>("/circle", 1);
+    pub = nh.advertise<circle_det::circles>("/circle", 1);
     point_all_pub = nh.advertise<sensor_msgs::PointCloud2>("/all_points", 1);
 
     ros::Subscriber sub = nh.subscribe("/cloud_registered", 1, cloud_cb);

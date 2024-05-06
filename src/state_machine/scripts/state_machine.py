@@ -10,6 +10,8 @@ import time
 from std_msgs.msg import Int8
 import numpy as np
 
+from circle_det.msg import circles
+
 class Algorithm:
     
     def __init__(self):
@@ -20,6 +22,7 @@ class Algorithm:
         self.aruco_pose = []
         self.target_point = PoseStamped()
         self.aruco_local = PoseStamped()
+        self.circles = circles()
         self.car_detected = False
         self.aruco_detected = False
 
@@ -54,6 +57,7 @@ class Algorithm:
         self.aruco_sub = rospy.Subscriber("/aruco_det/target_loc", PoseStamped, self.aruco_callback)
         self.aruco_local_sub = rospy.Subscriber("/aruco_det/target_loc_local", PoseStamped, self.aruco_local_callback)
         self.mavros_state_sub = rospy.Subscriber("/mavros/state", State, self.mavros_state_callback)
+        self.circle_det_sub = rospy.Subscriber("/circle", circles, self.circle_det_callback)
 
         self.arming_client = rospy.ServiceProxy("/mavros/cmd/arming", CommandBool)
         self.set_mode_client = rospy.ServiceProxy("/mavros/set_mode", SetMode)
@@ -63,6 +67,10 @@ class Algorithm:
         self.state_machine_state_pub = rospy.Publisher("/state_machine", Int8, queue_size=10)
 
         self.vel_cmd_pub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, queue_size=10)
+
+    def circle_det_callback(self, msg):
+        self.circles = msg
+        print(self.circles)
     
     def odom_callback(self, msg):
         self.odom = msg
