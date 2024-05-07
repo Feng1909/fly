@@ -3,6 +3,7 @@
 // 输出：圆环的位置
 
 #include <ros/ros.h>
+#include <cmath>
 #include <iostream>
 
 // #include <eigen/eigen>
@@ -36,7 +37,7 @@
 #include "circle_det/circles.h"
 
 ros::Publisher pub, point_all_pub;
-pcl::PCLPointCloud2 cloud_all;
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_all_points(new pcl::PointCloud<pcl::PointXYZ>);
 int circle_num = 1;
 bool finish_job = false;
 
@@ -44,65 +45,51 @@ circle_det::circles circles_msg;
 
 void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
 {
-    // pcl::concatenatePointCloud(*cloud_msg, cloud_msg);
-    if (finish_job) {
-        pub.publish(circles_msg);
-        return;
-    }
-    pcl::PCLPointCloud2 pcl_pc2;
-    pcl_conversions::toPCL(*cloud_msg, pcl_pc2);
-
-    pcl::concatenatePointCloud(cloud_all, pcl_pc2, cloud_all);
-
-    std::cout<<"all points: "<<cloud_all.data.size()<<std::endl;
-
-    sensor_msgs::PointCloud2 cloud_all_msg;
-    pcl_conversions::fromPCL(cloud_all, cloud_all_msg);
-    point_all_pub.publish(cloud_all_msg);
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
-
-    // 下采样
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_all_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromPCLPointCloud2(cloud_all, *cloud_all_filtered);
-    pcl::VoxelGrid<pcl::PointXYZ> vg;
-    vg.setInputCloud(cloud_all_filtered);
-    vg.setLeafSize(0.1f, 0.1f, 0.1f);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-    vg.filter(*cloud_filtered);
-
-    // 发布下采样后的点云
-    sensor_msgs::PointCloud2 cloud_filtered_msg;
-    pcl::toROSMsg(*cloud_filtered, cloud_filtered_msg);
-    point_all_pub.publish(cloud_filtered_msg);
-
-    // 聚类
-    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
-	tree->setInputCloud(cloud_filtered);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_single_points(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromROSMsg(*cloud_msg, *cloud_single_points);
+    pcl::VoxelGrid<pcl::PointXYZ> vg_single_points;
+    vg_single_points.setInputCloud(cloud_single_points);
+    vg_single_points.setLeafSize(0.1f, 0.1f, 0.1f);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_sinlge_points_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+    vg_single_points.filter(*cloud_sinlge_points_filtered);
+    *cloud_all_points += *cloud_sinlge_points_filtered;
+    //
+    pcl::VoxelGrid<pcl::PointXYZ> vg_single_points_tmp;
+    vg_single_points_tmp.setInputCloud(cloud_all_points);
+    vg_single_points_tmp.setLeafSize(0.1f, 0.1f, 0.1f);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_all_points_tmp(new pcl::PointCloud<pcl::PointXYZ>);
+    vg_single_points_tmp.filter(*cloud_all_points_tmp);
+    *cloud_all_points = *cloud_all_points_tmp;
+    //
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree_all(new pcl::search::KdTree<pcl::PointXYZ>);
+	tree_all->setInputCloud(cloud_all_points);
 	std::vector<pcl::PointIndices> clusterIndices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	ec.setClusterTolerance(0.1);
 	ec.setMinClusterSize(50);
 	ec.setMaxClusterSize(150);
-	ec.setSearchMethod(tree);
-	ec.setInputCloud(cloud_filtered);
+	ec.setSearchMethod(tree_all);
+	ec.setInputCloud(cloud_all_points);
 	ec.extract(clusterIndices);
 
-	int j = 0;
-	pcl::PCDWriter writer;
+
+    // 发布下采样后的点云
+    sensor_msgs::PointCloud2 cloud_filtered_msg;
+    pcl::toROSMsg(*cloud_all_points, cloud_filtered_msg);
+    cloud_filtered_msg.header.frame_id = "camera_init";
+    point_all_pub.publish(cloud_filtered_msg);
+
     std::cout<<"num: "<<clusterIndices.size()<<std::endl;
 	for (std::vector<pcl::PointIndices>::const_iterator it = clusterIndices.begin();it!=clusterIndices.end();++it)
 	{
-        bool circle_filter = false;
+        bool circle_filter = true;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudCluster(new pcl::PointCloud<pcl::PointXYZ>);
 		for (std::vector<int>::const_iterator pit = it->indices.begin();pit != it->indices.end();++pit)
 		{
-            // std::cout<<cloud_filtered->points[*pit]<<std::endl;
-            if (cloud_filtered->points[*pit].data[0]>2 || cloud_filtered->points[*pit].data[0]<1 ||
-                cloud_filtered->points[*pit].data[1]>1 || cloud_filtered->points[*pit].data[1]<-1)
+            if (cloud_all_points->points[*pit].data[0]>2 || cloud_all_points->points[*pit].data[0]<1 ||
+                cloud_all_points->points[*pit].data[1]>1 || cloud_all_points->points[*pit].data[1]<-1)
                 circle_filter = false;
-			cloudCluster->points.push_back(cloud_filtered->points[*pit]);
+			cloudCluster->points.push_back(cloud_all_points->points[*pit]);
 		}
         if (circle_filter == false)
             continue;
@@ -118,23 +105,60 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
         }
         center /= cloudCluster->points.size();
         
-        // 过滤
-        if (center[0]>2 || center[0]<1 || center[1]>1 || center[1]<-1)
-            continue;
+        // 拟合cloudCluster中的二维圆，已知半径，使用y和z轴，获得圆心
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-        geometry_msgs::Point center_msg;
-        center_msg.x = center[0];
-        center_msg.y = center[1];
-        center_msg.z = center[2];
-        std::cout<<"get 1"<<std::endl;
-        // pub.publish(circles);
-        circles_msg.pos.push_back(center_msg);
-        pub.publish(circles_msg);
-        if (circles_msg.pos.size() == circle_num){
-            finish_job = true;
-            return;
+        // 初始化圆拟合对象
+        int N = cloudCluster->points.size();
+
+        double sumX = 0.0; 
+        double sumY = 0.0;
+        double sumX2 = 0.0;
+        double sumY2 = 0.0;
+        double sumX3 = 0.0;
+        double sumY3 = 0.0;
+        double sumXY = 0.0;
+        double sumXY2 = 0.0;
+        double sumX2Y = 0.0;
+
+        for (int pId = 0; pId < N; ++pId) {
+            sumX += cloudCluster->points[pId].z;
+            sumY += cloudCluster->points[pId].y;
+
+            double x2 = cloudCluster->points[pId].z * cloudCluster->points[pId].z;
+            double y2 = cloudCluster->points[pId].y * cloudCluster->points[pId].y;
+            sumX2 += x2;
+            sumY2 += y2;
+
+            sumX3 += x2 * cloudCluster->points[pId].z;
+            sumY3 += y2 * cloudCluster->points[pId].y;
+            sumXY += cloudCluster->points[pId].z * cloudCluster->points[pId].y;
+            sumXY2 += cloudCluster->points[pId].z * y2;
+            sumX2Y += x2 * cloudCluster->points[pId].y;
         }
+
+        double C, D, E, G, H;
+        double a, b, c;
+
+        C = N * sumX2 - sumX * sumX;
+        D = N * sumXY - sumX * sumY;
+        E = N * sumX3 + N * sumXY2 - (sumX2 + sumY2) * sumX;
+        G = N * sumY2 - sumY * sumY;
+        H = N * sumX2Y + N * sumY3 - (sumX2 + sumY2) * sumY;
+
+        a = (H * D - E * G) / (C * G - D * D);
+        b = (H * C - E * D) / (D * D - G * C);
+        c = -(a * sumX + b * sumY + sumX2 + sumY2) / N;
+
+        std::cout<<"z: "<<-a/2.0<<" y: "<<-b/2.0<<" radius: "<<sqrt(a * a + b * b - 4 * c) / 2.0<<std::endl;
+
+        // 过滤
+        geometry_msgs::Point circle_center;
+        circle_center.x = center[0];
+        circle_center.y = -b/2.0;
+        circle_center.z = -a/2.0;
 	}
+
 }
 
 int main(int argc, char **argv)
