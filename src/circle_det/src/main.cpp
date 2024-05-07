@@ -79,16 +79,15 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
     cloud_filtered_msg.header.frame_id = "camera_init";
     point_all_pub.publish(cloud_filtered_msg);
 
-    std::cout<<"num: "<<clusterIndices.size()<<std::endl;
 	for (std::vector<pcl::PointIndices>::const_iterator it = clusterIndices.begin();it!=clusterIndices.end();++it)
 	{
         bool circle_filter = true;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudCluster(new pcl::PointCloud<pcl::PointXYZ>);
 		for (std::vector<int>::const_iterator pit = it->indices.begin();pit != it->indices.end();++pit)
 		{
-            if (cloud_all_points->points[*pit].data[0]>2 || cloud_all_points->points[*pit].data[0]<1 ||
-                cloud_all_points->points[*pit].data[1]>1 || cloud_all_points->points[*pit].data[1]<-1)
-                circle_filter = false;
+            // if (cloud_all_points->points[*pit].data[0]>2 || cloud_all_points->points[*pit].data[0]<1 ||
+            //     cloud_all_points->points[*pit].data[1]>1 || cloud_all_points->points[*pit].data[1]<-1)
+            //     circle_filter = false;
 			cloudCluster->points.push_back(cloud_all_points->points[*pit]);
 		}
         if (circle_filter == false)
@@ -104,9 +103,6 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
             center[2] += cloudCluster->points[i].data[2];
         }
         center /= cloudCluster->points.size();
-        
-        // 拟合cloudCluster中的二维圆，已知半径，使用y和z轴，获得圆心
-        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
         // 初始化圆拟合对象
         int N = cloudCluster->points.size();
@@ -150,15 +146,45 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &cloud_msg)
         b = (H * C - E * D) / (D * D - G * C);
         c = -(a * sumX + b * sumY + sumX2 + sumY2) / N;
 
-        std::cout<<"z: "<<-a/2.0<<" y: "<<-b/2.0<<" radius: "<<sqrt(a * a + b * b - 4 * c) / 2.0<<std::endl;
 
+        float radius = sqrt(a * a + b * b - 4 * c) / 2.0;
         // 过滤
         geometry_msgs::Point circle_center;
         circle_center.x = center[0];
         circle_center.y = -b/2.0;
         circle_center.z = -a/2.0;
-	}
 
+        double err = 0.0;
+        double e;
+        double r2 = radius * radius;
+        for (int pId = 0; pId < N; ++pId){
+            e = (cloudCluster->points[pId].z - circle_center.z)*(cloudCluster->points[pId].z - circle_center.z) \
+                +(cloudCluster->points[pId].y - circle_center.y)*(cloudCluster->points[pId].y - circle_center.y)  - r2;
+            if (e > err) {
+                err = e;
+            }
+        }
+        if (radius > 0.8 || radius < 0.3 || err/N > 0.003 || circle_center.z < 1 || circle_center.z > 2)
+            continue;
+        std::cout<<err/N<<std::endl;
+        std::cout<<"x: "<<center[0]<<" z: "<<-a/2.0<<" y: "<<-b/2.0<<" radius: "<<sqrt(a * a + b * b - 4 * c) / 2.0<<std::endl;
+
+        if (circles_msg.pos.empty())
+            circles_msg.pos.push_back(circle_center);
+        else {
+            bool is_in = false;
+            for (auto it = circles_msg.pos.begin(); it != circles_msg.pos.end(); it++)
+            {
+                if (sqrt(pow(it->x - circle_center.x, 2) + pow(it->y - circle_center.y, 2) + pow(it->z - circle_center.z, 2)) < 0.5)
+                {
+                    is_in = true;
+                }
+            }
+            if (!is_in)
+                circles_msg.pos.push_back(circle_center);
+        }
+	}
+    pub.publish(circles_msg);
 }
 
 int main(int argc, char **argv)

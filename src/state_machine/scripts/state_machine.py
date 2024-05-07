@@ -22,9 +22,11 @@ class Algorithm:
         self.aruco_pose = []
         self.target_point = PoseStamped()
         self.aruco_local = PoseStamped()
-        self.circles = circles()
+        self.circles_msg = circles()
         self.car_detected = False
         self.aruco_detected = False
+
+        self.circles_center = []
 
         self.debug_jump_to = 0
 
@@ -69,8 +71,20 @@ class Algorithm:
         self.vel_cmd_pub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, queue_size=10)
 
     def circle_det_callback(self, msg):
-        self.circles = msg
-        print(self.circles)
+        self.circles_msg = msg
+        if len(self.circles_center) == 0:
+            for circle_center in self.circles_msg.pos:
+                self.circles_center.append(circle_center)
+        else:
+            for circle_center in self.circles_msg.pos:
+                is_in = False
+                for circle_center_pre in self.circles_center:
+                    if (circle_center_pre.x - circle_center.x) ** 2 + (circle_center_pre.y - circle_center.y) ** 2 < 0.5:
+                        is_in = True
+                        break
+                if not is_in:
+                    self.circles_center.append(circle_center)
+                
     
     def odom_callback(self, msg):
         self.odom = msg
@@ -120,7 +134,7 @@ class Algorithm:
         state_now.data = self.state
         self.state_machine_state_pub.publish(state_now)
         if self.state == 0:
-            if self.mavros_state.mode == "OFFBOARD":
+            if self.mavros_state.mode == "OFFBOARD" or self.debug_jump_to > 0:
                 if self.mavros_state.armed == True or self.debug_jump_to > 0:
                     self.state = 1
                     return
@@ -147,14 +161,18 @@ class Algorithm:
                 self.state = 3
                 return
             else:
+                # if len(self.circles_center) == 0:
+                #     return
+                # self.circles_center.sort(key=lambda x: x.x)
+                # self.first_square_point = [self.circles_center[0].x, self.circles_center[0].y, self.circles_center[0].z + 0.1]
                 self.go_to(self.first_square_point)
                 return
         
         # Going to the 2nd square
         elif self.state == 3:
             if self.debug_jump_to > 3 or self.is_close(self.odom, self.second_square_point_pre):
-                # time.sleep(self.stay_time)
-                # self.state = 5
+                time.sleep(self.stay_time)
+                self.state = 4
                 return
             else:
                 self.go_to(self.second_square_point_pre)
@@ -173,8 +191,8 @@ class Algorithm:
         # Going to the car
         elif self.state == 5:
             if self.debug_jump_to > 5 or self.is_close(self.odom, self.car_point):
-                time.sleep(self.stay_time)
-                self.state = 6
+                # time.sleep(self.stay_time)
+                # self.state = 6
                 return
             else:
                 self.go_to(self.car_point)
@@ -229,9 +247,7 @@ class Algorithm:
             if self.debug_jump_to > 10 or self.mavros_state.armed == False:
                 self.state = 11
                 return
-            # self.arming_client.call(False)
-            # disarm_command = CommandBoolRequest(value=False)
-            # self.arming_client.call(disarm_command)
+            
             self.set_mode_client(0,'AUTO.LAND')
             return
         
