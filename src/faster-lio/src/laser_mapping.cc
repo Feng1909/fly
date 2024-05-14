@@ -432,6 +432,34 @@ void LaserMapping::IMUCallBack(const sensor_msgs::Imu::ConstPtr &msg_in) {
     msg->angular_velocity.z = -msg->angular_velocity.z;
     // std::cout<<"linear acc z: "<<msg->linear_acceleration.z<<std::endl;
 
+    // change msg linear acceleration
+    msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    msg->angular_velocity.z = -msg->angular_velocity.z;
+
+    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    msg->angular_velocity.x = -msg->angular_velocity.x;
+
+    // change msg linear acceleration
+    msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    msg->angular_velocity.z = -msg->angular_velocity.z;
+
+    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    msg->angular_velocity.x = -msg->angular_velocity.x;
+
+    // change msg linear acceleration
+    msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    msg->angular_velocity.z = -msg->angular_velocity.z;
+
+    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    msg->angular_velocity.x = -msg->angular_velocity.x;
+
+    // change msg linear acceleration
+    msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    msg->angular_velocity.z = -msg->angular_velocity.z;
+
+    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    msg->angular_velocity.x = -msg->angular_velocity.x;
+
     if (abs(timediff_lidar_wrt_imu_) > 0.1 && time_sync_en_) {
         msg->header.stamp = ros::Time().fromSec(timediff_lidar_wrt_imu_ + msg_in->header.stamp.toSec());
     }

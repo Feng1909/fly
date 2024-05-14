@@ -1,7 +1,9 @@
 .catkin_workspace
+.catkin_tools/
 devel
 build
 */devel
 */build
 .vscode
 *.bag
+*.backup

@@ -32,7 +32,7 @@ class Algorithm:
 
         self.arucos = []
 
-        self.stay_time = 0.5
+        self.stay_time = 1.0
 
         self.kp = 1.2
         self.kd = 0.6

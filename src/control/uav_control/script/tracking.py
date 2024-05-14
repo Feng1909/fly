@@ -226,7 +226,7 @@ def odom_cb(msg: Odometry):
         u.body_rate.x = wx
         u.body_rate.y = wy
         u.body_rate.z = wz
-        u.thrust = Tt/quad._a_z_max
+        u.thrust = Tt / quad._a_z_max
         # u.thrust = min(Tt/quad._a_z_max, 0.34)
         # u.thrust = 0
     if state_machine.data < 9:

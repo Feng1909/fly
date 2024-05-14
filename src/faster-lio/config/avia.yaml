@@ -1,11 +1,11 @@
 common:
-  lid_topic: "/rflysim/sensor0/livox_lidar"
+  lid_topic: "/rflysim/sensor0/global_lidar"
   imu_topic: "/rflysim/imu"
   time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
 
 preprocess:
   lidar_type: 2               # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR,
-  scan_line: 4
+  scan_line: 6
   blind: 2
   time_scale: 1e-3
 

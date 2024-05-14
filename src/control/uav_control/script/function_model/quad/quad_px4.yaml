@@ -9,7 +9,7 @@ omega_xy_max: 1
 omega_z_max: 1
 
 a_z_min: 0
-a_z_max: 18
+a_z_max: 16
 
 thrust_min: 0.0
 thrust_max: 16.2  # max accel z: 20m/s^2
