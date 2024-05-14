@@ -142,6 +142,8 @@ void PointCloudPreprocess::VelodyneHandler(const sensor_msgs::PointCloud2::Const
     }
 
     for (int i = 0; i < plsize; i++) {
+        if (pl_orig.points[i].x < 0)
+            continue;
         PointType added_pt;
 
         added_pt.normal_x = 0;

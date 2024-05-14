@@ -422,6 +422,15 @@ void LaserMapping::IMUCallBack(const sensor_msgs::Imu::ConstPtr &msg_in) {
     // std::cout<<"get imu;"<<std::endl;
     publish_count_++;
     sensor_msgs::Imu::Ptr msg(new sensor_msgs::Imu(*msg_in));
+    // change z axis
+    // msg->angular_velocity.z = -msg->angular_velocity.z;
+    msg->linear_acceleration.x = msg->linear_acceleration.x;
+    msg->linear_acceleration.y = -msg->linear_acceleration.y;
+    msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    msg->angular_velocity.x = -msg->angular_velocity.x;
+    msg->angular_velocity.y = msg->angular_velocity.y;
+    msg->angular_velocity.z = -msg->angular_velocity.z;
+    // std::cout<<"linear acc z: "<<msg->linear_acceleration.z<<std::endl;
 
     if (abs(timediff_lidar_wrt_imu_) > 0.1 && time_sync_en_) {
         msg->header.stamp = ros::Time().fromSec(timediff_lidar_wrt_imu_ + msg_in->header.stamp.toSec());

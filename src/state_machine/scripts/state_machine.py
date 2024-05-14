@@ -147,8 +147,8 @@ class Algorithm:
         # Taking off
         elif self.state == 1:
             if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
-                time.sleep(self.stay_time)
-                self.state = 2
+                # time.sleep(self.stay_time)
+                # self.state = 2
                 return
             else:
                 self.go_to(self.takeoff_point)

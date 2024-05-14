@@ -25,9 +25,9 @@
     <remap from="/grid_map/lidar_cloud" to="/cloud_registered_body"/>
   </node>
 
-  <include file="$(find uav_control)/launch/control.launch">
+  <!-- <include file="$(find uav_control)/launch/control.launch">
     <arg name="auto_offboard" value="false"/>
-  </include>
+  </include> -->
 
 
   <!-- <include file="$(find ius_visualization)/launch/test.launch">
