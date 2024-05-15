@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
                                                       ros::TransportHints().tcpNoDelay());
 
     ros::Subscriber imu_sub =
-        nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data", // Note: do NOT change it to /mavros/imu/data_raw !!!
+        nh.subscribe<sensor_msgs::Imu>("/rflysim/imu", // Note: do NOT change it to /mavros/imu/data_raw !!!
                                        100,
                                        boost::bind(&Imu_Data_t::feed, &fsm.imu_data, _1),
                                        ros::VoidConstPtr(),

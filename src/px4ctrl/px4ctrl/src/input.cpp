@@ -171,13 +171,13 @@ void Imu_Data_t::feed(sensor_msgs::ImuConstPtr pMsg)
     msg = *pMsg;
     rcv_stamp = now;
 
-    w(0) = msg.angular_velocity.x;
+    w(0) = -msg.angular_velocity.x;
     w(1) = msg.angular_velocity.y;
-    w(2) = msg.angular_velocity.z;
+    w(2) = -msg.angular_velocity.z;
 
-    a(0) = msg.linear_acceleration.x;
+    a(0) = -msg.linear_acceleration.x;
     a(1) = msg.linear_acceleration.y;
-    a(2) = msg.linear_acceleration.z;
+    a(2) = -msg.linear_acceleration.z;
 
     q.x() = msg.orientation.x;
     q.y() = msg.orientation.y;
