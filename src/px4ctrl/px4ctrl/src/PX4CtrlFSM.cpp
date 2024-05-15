@@ -398,6 +398,7 @@ Desired_State_t PX4CtrlFSM::get_hover_des()
 {
 	Desired_State_t des;
 	des.p = hover_pose.head<3>();
+	des.p(0) = 0.2;
 	des.v = Eigen::Vector3d::Zero();
 	des.a = Eigen::Vector3d::Zero();
 	des.j = Eigen::Vector3d::Zero();
