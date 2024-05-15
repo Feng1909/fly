@@ -424,11 +424,11 @@ void LaserMapping::IMUCallBack(const sensor_msgs::Imu::ConstPtr &msg_in) {
     sensor_msgs::Imu::Ptr msg(new sensor_msgs::Imu(*msg_in));
     // change z axis
     // msg->angular_velocity.z = -msg->angular_velocity.z;
-    msg->linear_acceleration.x = msg->linear_acceleration.x;
-    msg->linear_acceleration.y = -msg->linear_acceleration.y;
+    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    // msg->linear_acceleration.y = -msg->linear_acceleration.y;
     msg->linear_acceleration.z = -msg->linear_acceleration.z;
     msg->angular_velocity.x = -msg->angular_velocity.x;
-    msg->angular_velocity.y = msg->angular_velocity.y;
+    // msg->angular_velocity.y = msg->angular_velocity.y;
     msg->angular_velocity.z = -msg->angular_velocity.z;
     // std::cout<<"linear acc z: "<<msg->linear_acceleration.z<<std::endl;
 

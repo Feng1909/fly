@@ -6,4 +6,6 @@ build
 */build
 .vscode
 *.bag
+
 *.backup
+__pycache__/
