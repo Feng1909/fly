@@ -423,12 +423,12 @@ void LaserMapping::IMUCallBack(const sensor_msgs::Imu::ConstPtr &msg_in) {
     publish_count_++;
     sensor_msgs::Imu::Ptr msg(new sensor_msgs::Imu(*msg_in));
     
-    msg->linear_acceleration.x = -msg->linear_acceleration.x;
+    // msg->linear_acceleration.x = -msg->linear_acceleration.x;
     // msg->linear_acceleration.y = -msg->linear_acceleration.y;
-    msg->linear_acceleration.z = -msg->linear_acceleration.z;
-    msg->angular_velocity.x = -msg->angular_velocity.x;
+    // msg->linear_acceleration.z = -msg->linear_acceleration.z;
+    // msg->angular_velocity.x = -msg->angular_velocity.x;
     // msg->angular_velocity.y = msg->angular_velocity.y;
-    msg->angular_velocity.z = -msg->angular_velocity.z;
+    // msg->angular_velocity.z = -msg->angular_velocity.z;
     // std::cout<<"linear acc z: "<<msg->linear_acceleration.z<<std::endl;
 
     if (abs(timediff_lidar_wrt_imu_) > 0.1 && time_sync_en_) {
@@ -703,6 +703,23 @@ void LaserMapping::PublishOdometry(const ros::Publisher &pub_odom_aft_mapped) {
     odom_aft_mapped_.twist.twist.angular.x = imu_buffer_.front()->angular_velocity.x;
     odom_aft_mapped_.twist.twist.angular.y = imu_buffer_.front()->angular_velocity.y;
     odom_aft_mapped_.twist.twist.angular.z = imu_buffer_.front()->angular_velocity.z;
+
+    double x, y, z, qw, qx, qy, qz;
+    x = odom_aft_mapped_.pose.pose.position.x;
+    y = odom_aft_mapped_.pose.pose.position.y;
+    z = odom_aft_mapped_.pose.pose.position.z;
+    qw = odom_aft_mapped_.pose.pose.orientation.w;
+    qx = odom_aft_mapped_.pose.pose.orientation.x;
+    qy = odom_aft_mapped_.pose.pose.orientation.y;
+    qz = odom_aft_mapped_.pose.pose.orientation.z;
+    odom_aft_mapped_.pose.pose.position.x = y;
+    odom_aft_mapped_.pose.pose.position.y = x;
+    odom_aft_mapped_.pose.pose.position.z = -z;
+    odom_aft_mapped_.pose.pose.orientation.w = qw;
+    odom_aft_mapped_.pose.pose.orientation.x = qy;
+    odom_aft_mapped_.pose.pose.orientation.y = qx;
+    odom_aft_mapped_.pose.pose.orientation.z = -qz;
+
     
     geometry_msgs::PoseStamped mavros_odom;
     mavros_odom.header = odom_aft_mapped_.header;

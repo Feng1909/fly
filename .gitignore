@@ -9,3 +9,6 @@ build
 
 *.backup
 __pycache__/
+
+*.pcd
+PCD
