@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="uav_control" name="track" type="setpoint.py" output="screen">
+        <remap from="~odom" to="/Odometry" />
+        <rosparam file="$(find uav_control)/config/pos_point.yaml" command="load" />
+    </node>
+    
+</launch>
