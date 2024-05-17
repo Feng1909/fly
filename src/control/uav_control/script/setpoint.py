@@ -52,6 +52,7 @@ class Controller:
             if self.is_close(msg, self.takeoff_point):
                 rospy.sleep(self.sleep_time)
                 self.state = 1
+                pass
             else:
                 self.pub(self.takeoff_point)
         if self.state == 1:
@@ -107,9 +108,10 @@ class Controller:
             else:
                 self.pub(self.land_point_end)
         if self.state == 9:
-            self.set_mode_client(0,'AUTO.LAND')
-            rospy.sleep(self.sleep_time)
-            self.arm_client(False)
+            # self.set_mode_client(0,'AUTO.LAND')
+            # rospy.sleep(self.sleep_time)
+            # self.arm_client(False)
+            pass
             
         
 

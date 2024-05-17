@@ -20,7 +20,7 @@ class Algorithm:
 
         # for Aruco
         self.bridge = CvBridge()
-        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
+        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_7X7_50)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         
         self.camera_Matrix = np.array([[1.78634438e+03,0.00000000e+00,9.13022592e+02],
@@ -33,7 +33,7 @@ class Algorithm:
 
         # Subscriber
         pose_sub = rospy.Subscriber('/Odometry', Odometry, self.pose_callback)
-        usb_cam_sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.camera_callback)
+        usb_cam_sub = rospy.Subscriber('/rflysim/sensor2/img_rgb', Image, self.camera_callback)
 
         # Publisher 
         self.camera_pub = rospy.Publisher('/aruco_det/vis', Image, queue_size=1)
@@ -63,6 +63,7 @@ class Algorithm:
     
     def camera_callback(self, msg):
         msg = self.bridge.imgmsg_to_cv2(msg)
+        self.camera_pub.publish(self.bridge.cv2_to_imgmsg(msg))
         time_received = rospy.Time.now()
         now_state = self.state
         cv_image = msg
@@ -102,8 +103,8 @@ class Algorithm:
                 self.detect_result.publish(target_loc)
                 if self.debug:
                     draw_det_marker_img = cv2.aruco.drawDetectedMarkers(cv_image, corners, ids)
-                    draw_det_marker_img = cv2.drawFrameAxes(draw_det_marker_img, self.camera_Matrix, self.distortion_Matrix,
-                                                                rvec[i, :, :], tvec[i, :, :], 0.03)
+                    # draw_det_marker_img = cv2.drawFrameAxes(draw_det_marker_img, self.camera_Matrix, self.distortion_Matrix,
+                    #                                             rvec[i, :, :], tvec[i, :, :], 0.03)
                     self.det_vis_pub.publish(self.bridge.cv2_to_imgmsg(draw_det_marker_img))
                     print("detect time: ", rospy.Time.now().to_sec())
                 break
