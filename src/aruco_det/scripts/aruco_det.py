@@ -5,7 +5,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped, Point
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool,Int32
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
@@ -20,7 +20,7 @@ class Algorithm:
 
         # for Aruco
         self.bridge = CvBridge()
-        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_7X7_50)
+        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_ARUCO_ORIGINAL)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         
         self.camera_Matrix = np.array([[1.78634438e+03,0.00000000e+00,9.13022592e+02],
@@ -36,6 +36,7 @@ class Algorithm:
         usb_cam_sub = rospy.Subscriber('/rflysim/sensor2/img_rgb', Image, self.camera_callback)
 
         # Publisher 
+        self.id_pub = rospy.Publisher('/aruco_det/aruco_id', Int32, queue_size=1)
         self.camera_pub = rospy.Publisher('/aruco_det/vis', Image, queue_size=1)
         self.det_vis_pub = rospy.Publisher('/aruco_det/det_vis', Image, queue_size=1)
         self.detect_result = rospy.Publisher('/aruco_det/target_loc', PoseStamped, queue_size=1)
@@ -69,8 +70,11 @@ class Algorithm:
         cv_image = msg
         (corners, ids, rejected) = cv2.aruco.detectMarkers(cv_image, self.arucoDict,
             parameters=self.arucoParams)
-
+        
         if len(corners) > 0:
+            detected_id = ids[0][0]
+            self.id_pub.publish(detected_id)
+            rospy.loginfo(f"Detected Aruco ID: {detected_id}")
             if ids[0][0] == 19:
                 length = 0.2
             else:

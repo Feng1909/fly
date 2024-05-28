@@ -1,17 +1,19 @@
-takeoff:        [0.0, 0.0, 1.5]
+takeoff:        [0.0, 0.0, 1.2]
 
-1st_square_pre: [2.2, 0.1, 1.5]
+1st_square_pre: [2.2, 0.1, 1.2]
 
-1st_square:     [3.25, 0.25, 1.5]
+1st_square:     [3.25, 0.25, 1.2]
 
-1st_square_end: [4.3, 0.0, 1.5]
+1st_square_end: [4.3, 0.0, 1.2]
 
-2nd_square_pre: [4.8, -0.25, 1.5]
+2nd_square_pre: [4.8, -0.25, 1.2]
 
-2nd_square_end: [5.5, -0.25, 1.5]
+2nd_square_end: [5.5, -0.25, 1.2]
 
-car:            [7, 1, 1.5]
+car_up:         [7, 1, 1.2]
 
-land:           [8, 1.0, 1.5]
+car:            [7, 1, 1.0]
+
+land:           [8, 1.0, 1.2]
 
 land_end:       [8, 1.0, 0.1]
