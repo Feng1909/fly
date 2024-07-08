@@ -1,0 +1,5 @@
+sensors_num: 3 #total sensors number
+sensors_frame_id:  ["lidar","front_rgb","front_depth","down_rgb"]
+imu_frame_id: "imu"
+imu_topic_name: "/rflysim/imu"
+

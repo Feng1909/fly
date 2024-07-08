@@ -31,7 +31,7 @@ class Controller:
         self.center_pos_end = [self.center_pos[0] + 0.1, self.center_pos[1], self.center_pos[2]]
         print(f"Calculated center_pos_start: {self.center_pos_start}")
         print(f"Calculated center_pos_end: {self.center_pos_end}")
-        
+
     def load_params(self):
         self.state = 0
         self.takeoff_point = rospy.get_param('~takeoff')
@@ -62,7 +62,7 @@ class Controller:
            (odom.pose.pose.position.y - point[1])**2 + \
            (odom.pose.pose.position.z - point[2])**2 < 0.2:
             return True
-        return False 
+        return False
 
     def detected_callback(self, msg):
         self.det_flag = True
@@ -138,12 +138,12 @@ class Controller:
             else:
                 self.pub(self.land_point_end)
         if self.state == 10:
-            # self.set_mode_client(0,'AUTO.LAND')
-            # rospy.sleep(self.sleep_time)
-            # self.arm_client(False)
+            self.set_mode_client(0,'AUTO.LAND')
+            rospy.sleep(self.sleep_time)
+            self.arm_client(False)
             pass
-            
-        
+
+
 
 
 controller = Controller()
