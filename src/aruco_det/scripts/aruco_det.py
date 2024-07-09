@@ -20,7 +20,7 @@ class Algorithm:
 
         # for Aruco
         self.bridge = CvBridge()
-        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
+        self.arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_ARUCO_ORIGINAL)
         self.arucoParams = cv2.aruco.DetectorParameters_create()
         
         self.camera_Matrix = np.array([[1.78634438e+03,0.00000000e+00,9.13022592e+02],
@@ -99,13 +99,16 @@ class Algorithm:
                 target_loc.pose.position.y += now_state.pose.pose.position.y
                 target_loc.pose.position.z += now_state.pose.pose.position.z
 
+                target_loc.pose.position.x = ids[0][0]
+
                 self.detect_result.publish(target_loc)
                 if self.debug:
                     draw_det_marker_img = cv2.aruco.drawDetectedMarkers(cv_image, corners, ids)
                     draw_det_marker_img = cv2.drawFrameAxes(draw_det_marker_img, self.camera_Matrix, self.distortion_Matrix,
                                                                 rvec[i, :, :], tvec[i, :, :], 0.03)
                     self.det_vis_pub.publish(self.bridge.cv2_to_imgmsg(draw_det_marker_img))
-                    print("detect time: ", rospy.Time.now().to_sec())
+                    # print("detect time: ", rospy.Time.now().to_sec())
+                    print(ids)
                 break
 
 if __name__ == "__main__":

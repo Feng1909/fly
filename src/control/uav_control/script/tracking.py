@@ -44,9 +44,14 @@ class Traj():
         for i, pos in enumerate(traj.pos):
             time_plus += abs(pos.z - pos_init.z)
             pos_init = pos
-            poss.append([pos.x, pos.y, pos.z])
-            yaws.append(traj.yaw[i])
-            ts.append(traj.time[i] + time_plus*4.0)
+            if state_machine.data >= 2:
+                poss.append([pos.x, pos.y, 1.1])
+                yaws.append(traj.yaw[i])
+                ts.append(traj.time[i] + time_plus*4.0)
+            else:
+                poss.append([pos.x, pos.y, pos.z])
+                yaws.append(traj.yaw[i])
+                ts.append(traj.time[i] + time_plus*4.0)
         if len(poss) >= 5:
             if (poss[0][0] - poss[2][0])**2 + (poss[0][1] - poss[2][1])**2 + (poss[0][2] - poss[2][2])**2 < 0.001:
                 poss = poss[2:]
@@ -229,7 +234,10 @@ def odom_cb(msg: Odometry):
         u.thrust = min(Tt/quad._a_z_max, 0.34)
         # u.thrust = 0
     if state_machine.data < 9:
-        u.thrust = min(u.thrust, 0.34)
+        if state_machine.data == 1:
+            u.thrust = min(u.thrust, 0.34)
+        else:
+            u.thrust = min(u.thrust, 0.37)
         setpoint_raw_pub.publish(u)
         print(u.thrust, u.body_rate.x, u.body_rate.y, u.body_rate.z)
 

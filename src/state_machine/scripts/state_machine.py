@@ -32,7 +32,7 @@ class Algorithm:
 
         self.arucos = []
 
-        self.stay_time = 0.5
+        self.stay_time = 0.1
 
         self.kp = 1.2
         self.kd = 0.6
@@ -93,8 +93,10 @@ class Algorithm:
         self.aruco_local = msg
 
     def aruco_callback(self, msg: PoseStamped):
-        if self.state != 8 or self.aruco_detected == True:
+        if self.state != 6 or self.aruco_detected == True:
             return
+        if msg.pose.position.x == 22:
+            self.car_detected = True
         self.arucos.append([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
         if len(self.arucos) == 5:
             aruco_tmp = np.array(self.arucos)
@@ -113,8 +115,13 @@ class Algorithm:
     
     def is_close(self, odom: Odometry, pose: list):
         # print(abs(odom.pose.pose.position.x - pose[0]), abs(odom.pose.pose.position.y - pose[1]), abs(odom.pose.pose.position.z - pose[2]))
-        if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
-            return True
+        if self.state == 1:
+            if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05 and abs(odom.pose.pose.position.z - pose[2]) < 0.1:
+                return True
+        else:
+            if abs(odom.pose.pose.position.x - pose[0]) < 0.05 and abs(odom.pose.pose.position.y - pose[1]) < 0.05:
+                return True
+
         return False
 
     def go_to(self, pose: list):
@@ -147,7 +154,7 @@ class Algorithm:
         # Taking off
         elif self.state == 1:
             if self.debug_jump_to > 1 or self.is_close(self.odom, self.takeoff_point):
-                time.sleep(self.stay_time)
+                time.sleep(0.5)
                 self.state = 2
                 return
             else:
@@ -191,8 +198,8 @@ class Algorithm:
         # Going to the car
         elif self.state == 5:
             if self.debug_jump_to > 5 or self.is_close(self.odom, self.car_point):
-                # time.sleep(self.stay_time)
-                # self.state = 6
+                time.sleep(self.stay_time)
+                self.state = 6
                 return
             else:
                 self.go_to(self.car_point)
@@ -200,7 +207,8 @@ class Algorithm:
         
         # Recognizing the car
         elif self.state == 6:
-            if self.debug_jump_to > 6 or self.car_detected == False:
+            if self.debug_jump_to > 6 or self.car_detected == True:
+                time.sleep(self.stay_time)
                 self.state = 7
                 return
             return
@@ -209,7 +217,7 @@ class Algorithm:
         elif self.state == 7:
             if self.debug_jump_to > 7 or self.is_close(self.odom, self.land_point):
                 time.sleep(self.stay_time)
-                self.state = 8
+                self.state = 9
                 return
             else:
                 self.go_to(self.land_point)
@@ -217,14 +225,14 @@ class Algorithm:
             
         # Recognizing the Aruco code
         elif self.state == 8:
-            if self.debug_jump_to > 8 or self.aruco_detected == True:
+            if self.debug_jump_to > 8 or self.aruco_detected == False:
                 self.state = 9
                 return
             return
         
         # Landing
         elif self.state == 9:
-            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 0.2:
+            if self.debug_jump_to > 9 or self.odom.pose.pose.position.z < 2.0:
                 self.state = 10
                 return
             else:
@@ -233,12 +241,12 @@ class Algorithm:
                 vel_cmd.linear.z = -0.2
                 vel_cmd.linear.x = 0
                 vel_cmd.linear.y = 0
-                error_x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
-                error_y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
-                derivative_x = error_x - self.pre_error_x
-                derivative_y = error_y - self.pre_error_y
-                vel_cmd.linear.x = self.kp * error_x + self.kd * derivative_x
-                vel_cmd.linear.y = self.kp * error_y + self.kd * derivative_y
+                # error_x = max(min((self.aruco_local.pose.position.x-320)/500, 0.1), -0.1)
+                # error_y = max(min(-(self.aruco_local.pose.position.y-240)/500, 0.1), -0.1)
+                # derivative_x = error_x - self.pre_error_x
+                # derivative_y = error_y - self.pre_error_y
+                # vel_cmd.linear.x = self.kp * error_x + self.kd * derivative_x
+                # vel_cmd.linear.y = self.kp * error_y + self.kd * derivative_y
                 self.vel_cmd_pub.publish(vel_cmd)
                 return
         
@@ -264,7 +272,6 @@ class Algorithm:
         self.second_square_point_end = rospy.get_param('~2nd_square_end')
         self.car_point = rospy.get_param('~car')
         self.land_point = rospy.get_param('~land')
-        print(type(self.land_point))
 
 if __name__ == "__main__":
 
