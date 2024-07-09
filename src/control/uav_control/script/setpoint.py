@@ -119,7 +119,7 @@ class Controller:
         if self.state == 7:
             if self.det_flag:
                 rospy.sleep(self.sleep_time)
-                self.state = 8
+                self.state = 9
                 pass
             else:
                 self.pub(self.car_point)
