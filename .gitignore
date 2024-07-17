@@ -1,14 +1,21 @@
 .catkin_workspace
 .catkin_tools/
-devel
-build
+
+devel/
+build/
+
 */devel
 */build
-.vscode
+
+.vscode/
+
 *.bag
 
 *.backup
+
 __pycache__/
 
 *.pcd
 PCD
+
+src/CMakeLists.txt

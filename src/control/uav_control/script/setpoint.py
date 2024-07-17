@@ -27,7 +27,8 @@ class Controller:
         self.center_pos = [msg.pose.position.x, msg.pose.position.y, msg.pose.position.z]
 
     def get_center_pos(self):
-        self.center_pos_start = [self.center_pos[0] -0.1, self.center_pos[1], self.center_pos[2]]
+        # self.center_pos_start = [self.center_pos[0] -0.1, self.center_pos[1], self.center_pos[2]]
+        self.center_pos_start = [self.center_pos[0], self.center_pos[1], self.center_pos[2]]
         self.center_pos_end = [self.center_pos[0] + 0.1, self.center_pos[1], self.center_pos[2]]
         print(f"Calculated center_pos_start: {self.center_pos_start}")
         print(f"Calculated center_pos_end: {self.center_pos_end}")
@@ -86,7 +87,8 @@ class Controller:
         if self.state == 2:
             if self.is_close(msg, self.center_pos_start):
                 rospy.sleep(self.sleep_time)
-                self.state = 3
+                # self.state = 3
+                self.state = 4
             else:
                 self.pub(self.center_pos_start)
         if self.state == 3:
@@ -105,7 +107,8 @@ class Controller:
         if self.state == 5:
             if self.is_close(msg, self.second_square_point_end):
                 rospy.sleep(self.sleep_time)
-                self.state = 6
+                # self.state = 6
+                self.state = 9
                 pass
             else:
                 self.pub(self.second_square_point_end)
@@ -119,7 +122,7 @@ class Controller:
         if self.state == 7:
             if self.det_flag:
                 rospy.sleep(self.sleep_time)
-                self.state = 9
+                self.state = 8
                 pass
             else:
                 self.pub(self.car_point)

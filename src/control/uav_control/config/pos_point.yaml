@@ -1,6 +1,6 @@
-takeoff:        [0.0, 0.0, 1.2]
+takeoff:        [0.0, 0.0, 0.3]
 
-1st_square_pre: [2.2, 0.1, 1.2]
+1st_square_pre: [2.2, 0.2, 1.2]
 
 1st_square:     [3.25, 0.25, 1.2]
 
