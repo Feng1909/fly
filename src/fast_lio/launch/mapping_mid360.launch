@@ -1,7 +1,7 @@
 <launch>
 <!-- Launch file for Livox MID360 LiDAR -->
 
-	<arg name="rviz" default="true" />
+	<arg name="rviz" default="false" />
 
 	<rosparam command="load" file="$(find fast_lio)/config/mid360.yaml" />
 

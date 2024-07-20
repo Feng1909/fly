@@ -27,11 +27,12 @@ class Controller:
         self.center_pos = [msg.pose.position.x, msg.pose.position.y, msg.pose.position.z]
 
     def get_center_pos(self):
-        self.center_pos_start = [self.center_pos[0] -0.1, self.center_pos[1], self.center_pos[2]]
+        # self.center_pos_start = [self.center_pos[0] -0.1, self.center_pos[1], self.center_pos[2]]
+        self.center_pos_start = [self.center_pos[0], self.center_pos[1], self.center_pos[2]]
         self.center_pos_end = [self.center_pos[0] + 0.1, self.center_pos[1], self.center_pos[2]]
         print(f"Calculated center_pos_start: {self.center_pos_start}")
         print(f"Calculated center_pos_end: {self.center_pos_end}")
-        
+
     def load_params(self):
         self.state = 0
         self.takeoff_point = rospy.get_param('~takeoff')
@@ -62,7 +63,7 @@ class Controller:
            (odom.pose.pose.position.y - point[1])**2 + \
            (odom.pose.pose.position.z - point[2])**2 < 0.2:
             return True
-        return False 
+        return False
 
     def detected_callback(self, msg):
         self.det_flag = True
@@ -86,7 +87,8 @@ class Controller:
         if self.state == 2:
             if self.is_close(msg, self.center_pos_start):
                 rospy.sleep(self.sleep_time)
-                self.state = 3
+                # self.state = 3
+                self.state = 4
             else:
                 self.pub(self.center_pos_start)
         if self.state == 3:
@@ -105,7 +107,8 @@ class Controller:
         if self.state == 5:
             if self.is_close(msg, self.second_square_point_end):
                 rospy.sleep(self.sleep_time)
-                self.state = 6
+                # self.state = 6
+                self.state = 9
                 pass
             else:
                 self.pub(self.second_square_point_end)
@@ -138,12 +141,12 @@ class Controller:
             else:
                 self.pub(self.land_point_end)
         if self.state == 10:
-            # self.set_mode_client(0,'AUTO.LAND')
-            # rospy.sleep(self.sleep_time)
-            # self.arm_client(False)
+            self.set_mode_client(0,'AUTO.LAND')
+            rospy.sleep(self.sleep_time)
+            self.arm_client(False)
             pass
-            
-        
+
+
 
 
 controller = Controller()
